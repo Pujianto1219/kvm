@@ -561,7 +561,7 @@ case $opt in
 13 | 13) clear ; m-backup ;;
 14 | 14) clear ; m-rebuild ;;
 15 | 15) clear ; m-update ;;
-16 | 16) clear ; m-zivpn ;;
+16 | 16) clear ; wget -qO /usr/bin/m-zivpn "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn" && chmod +x /usr/bin/m-zivpn && m-zivpn ;;
 #88 | 88) clear ; new ;;
 77 | 77) clear ; newx ;;
 99 | 99) clear ; passwd ;;
