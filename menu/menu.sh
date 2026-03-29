@@ -552,7 +552,23 @@ case $opt in
 04 | 4) clear ; m-trojan ;;
 05 | 5) clear ; m-noobz ;;
 06 | 6) clear ; m-trgo ;;
-07 | 7) clear ; bash /usr/bin/ex.sh ;;
+07 | 7) 
+    clear
+    # Cek apakah ZIVPN sudah terinstall
+    if [ ! -f "/usr/local/bin/zivpn" ]; then
+        echo -e " ${YELLOW}ZIVPN belum terinstall. Memulai proses instalasi...${NC}"
+        sleep 2
+        # Eksekusi script installer dari Github
+        wget -qO /tmp/install-zivpn.sh "https://raw.githubusercontent.com/Pujianto1219/ZivCilz/refs/heads/main/setup.sh"
+        chmod +x /tmp/install-zivpn.sh
+        /tmp/install-zivpn.sh
+    else
+        # Jika sudah terinstall, buka menu pengelolaannya
+        wget -qO /usr/bin/m-zivpn "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn"
+        chmod +x /usr/bin/m-zivpn
+        m-zivpn
+    fi
+    ;;
 08 | 8) clear ; running ;;
 09 | 9) clear ; restartservice ;;
 10 | 10) clear ; m-system ;;
