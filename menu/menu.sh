@@ -187,6 +187,14 @@ else
     status_udp="${Red_font_prefix}OFF${NC}"
     systemctl start udp-custom
 fi
+#ZIVPN
+zivpn_status=$( systemctl status zivpn | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+if [[ $zivpn_status == "running" ]]; then
+    stat_zivpn="${Green_font_prefix}ON${NC}"
+else
+    stat_zivpn="${Red_font_prefix}OFF${NC}"
+    systemctl start zivpn
+fi
 
 stat_trgo=$( systemctl status trojan-go | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
 if [[ $stat_trgo == "running" ]]; then
@@ -195,7 +203,6 @@ else
     stat_trgo="${Red_font_prefix}OFF${NC}"
     systemctl start trojan-go
 fi
-
 
 
 # STATUS EXPIRED ACTIVE
