@@ -56,8 +56,8 @@ fi
 # 5. Install Dependencies
 echo -e "${YELLOW}[3/12] Installing Dependencies...${NC}"
 apt-get update -y
-# Tambahkan iptables-persistent dan netfilter-persistent
 DEBIAN_FRONTEND=noninteractive apt-get install wget openssl dnsutils iptables jq zip cron curl iptables-persistent netfilter-persistent -y >/dev/null 2>&1
+
 # 6. Domain Configuration
 echo -e "${YELLOW}[4/12] Domain Configuration${NC}"
 mkdir -p /etc/zivpn
@@ -227,32 +227,25 @@ chmod +x /usr/bin/backup-zivpn
 # ==========================================
 cat <<'EOF' > /usr/bin/zivpn-ipcheck
 #!/bin/bash
-# Auto IP Checker for Zivpn
-# HAPUS tanda \ di depan $(date) karena kita pakai 'EOF'
 PERMISSION_URL="https://raw.githubusercontent.com/Pujianto1219/ip/refs/heads/main/ip?v=$(date +%s)"
 MYIP=$(wget -qO- ipinfo.io/ip)
 LOG_FILE="/var/log/zivpn-ipcheck.log"
 
-# Ambil Data
 RAW_DATA=$(curl -s "$PERMISSION_URL" | grep "$MYIP")
 TODAY=$(date +%Y-%m-%d)
 
 if [[ -n "$RAW_DATA" ]]; then
     EXP_DATE=$(echo "$RAW_DATA" | awk '{print $3}')
     if [[ "$EXP_DATE" > "$TODAY" || "$EXP_DATE" == "$TODAY" ]]; then
-        # IP VALID
-        # Pastikan service jalan (Auto-Heal)
         if ! systemctl is-active --quiet zivpn.service; then
             systemctl start zivpn.service
             echo "$(date): Service Restarted (IP Valid)" >> $LOG_FILE
         fi
     else
-        # IP EXPIRED
         echo "$(date): IP Expired on $EXP_DATE. Stopping Service." >> $LOG_FILE
         systemctl stop zivpn.service
     fi
 else
-    # IP TIDAK TERDAFTAR
     echo "$(date): IP Not Registered. Stopping Service." >> $LOG_FILE
     systemctl stop zivpn.service
 fi
@@ -266,27 +259,25 @@ sed -i "/xp-zivpn/d" /etc/crontab
 sed -i "/backup-zivpn/d" /etc/crontab
 sed -i "/zivpn-ipcheck/d" /etc/crontab
 
-# 1. Cek User Expired (Per Menit - untuk Trial)
 echo "* * * * * root /usr/bin/xp-zivpn" >> /etc/crontab
-# 2. Cek Validitas IP VPS (Setiap jam 12 Malam)
 echo "0 0 * * * root /usr/bin/zivpn-ipcheck" >> /etc/crontab
-# 3. Auto Backup (Jam 5 Pagi)
 echo "0 5 * * * root /usr/bin/backup-zivpn" >> /etc/crontab
 
 service cron restart
 
-# 13. Download Scripts
-echo -e "${YELLOW}[11/12] Downloading Menu & Bot...${NC}"
-wget -q "https://raw.githubusercontent.com/Pujianto1219/ZivCilz/main/menu.sh" -O /usr/bin/menu
-chmod +x /usr/bin/menu
+# =========================================================
+# 13. PERBAIKAN: DOWNLOAD MENU ZIVPN (TANPA MENIMPA MENU UTAMA)
+# =========================================================
+echo -e "${YELLOW}[11/12] Downloading ZIVPN Menu & Bot...${NC}"
+
+# Simpan menu ZIVPN sebagai m-zivpn, bukan menu!
+wget -q "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn" -O /usr/bin/m-zivpn
+chmod +x /usr/bin/m-zivpn
 
 wget -q "https://raw.githubusercontent.com/Pujianto1219/ZivCilz/main/bot.sh" -O /usr/bin/zivbot
 chmod +x /usr/bin/zivbot
 
 touch /root/.hushlogin
-if ! grep -q "menu" /root/.bashrc; then
-    echo "if [ -t 0 ]; then menu; fi" >> /root/.bashrc
-fi
 
 # Cleanup
 rm -f zi.* 2>/dev/null
@@ -302,4 +293,6 @@ echo -e " IP Check   : Active (Daily Cron)"
 echo -e "${CYAN}=========================================${NC}"
 sleep 2
 clear
+
+# Memanggil menu utama ACIL SHOP kembali
 menu
