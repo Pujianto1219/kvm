@@ -422,16 +422,16 @@ echo -e " $COLOR1│$NC ${COLOR1}[${WH}3${COLOR1}]${NC}${COLOR1}• ${WH}VLESS  
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}4${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN     $COLOR1│$NC   ${status_xray}${NC}     $trtls Accounts    ${NC}  $yesterday_tx $yesterday_txv${NC}"
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}5${COLOR1}]${NC}${COLOR1}• ${WH}NOOBZVPN  $COLOR1│$NC   ${stat_noobz}${NC}     $jumlah_noobz Accounts     ${NC} ${COLOR1}THIS MONTH ${NC}" 
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}6${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN-GO $COLOR1│$NC   ${stat_trgo}${NC}     $jumlah_trgo Accounts     ${NC} $month_tx $month_txv${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}ZIVPN     $COLOR1│$NC   ${stat_zivpn}${NC}     $jumlah_zivpn Accounts    ${NC}                ${NC}"
 echo -e " $COLOR1╰════════════════╯╰══════╯╰═════════════╯╰═══════════════╯${NC}"
 
 # --- MENU NAVIGATION ---
 echo -e " $COLOR1╭═══════════════════════════╮╭═══════════════════════════╮${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED   $COLOR1││$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE      $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1} ${WH}MENU SYSTEM          $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"   
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}16${COLOR1}]${NC}${COLOR1}• ${WH}CREATE ZIVPN         $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                 $COLOR1││$NC                           $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED   $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE     $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}MENU SYSTEM         $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"   
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                $COLOR1││$NC ${COLOR1}[${WH}16${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
 echo -e " $COLOR1╰═══════════════════════════╯╰═══════════════════════════╯${NC}"
 
 # === PANEL ADMIN (jika aktif) ===
