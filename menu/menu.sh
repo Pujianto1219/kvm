@@ -545,7 +545,6 @@ chmod +x install_up.sh
 }
 echo -e ""
 echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
-echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
 case $opt in
 01 | 1) clear ; m-sshovpn ;;
 02 | 2) clear ; m-vmess ;;
