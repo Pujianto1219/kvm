@@ -221,6 +221,9 @@ total_ssh=$(grep -c -E "^### " "/etc/xray/ssh")
 jumlah_noobz=$(grep -c -E "^### " "/etc/xray/noob")
 # TOTAL CREATE ACC TROJAN-GO
 jumlah_trgo=$(grep -c -E "^### " "/etc/trojan-go/trgo")
+# TOTAL CREATE ACC ZIVPN (Membaca jumlah array di config.json)
+jumlah_zivpn=$(jq '.auth.config | length' /etc/zivpn/config.json 2>/dev/null || echo "0")
+
 function m-ip2(){
 clear
 cd
