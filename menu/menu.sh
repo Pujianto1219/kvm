@@ -559,7 +559,7 @@ case $opt in
         echo -e " ${YELLOW}ZIVPN belum terinstall. Memulai proses instalasi...${NC}"
         sleep 2
         # Eksekusi script installer dari Github
-        wget -qO /tmp/install-zivpn.sh "https://raw.githubusercontent.com/Pujianto1219/ZivCilz/refs/heads/main/setup.sh"
+        wget -qO /tmp/install-zivpn.sh "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn"
         chmod +x /tmp/install-zivpn.sh
         /tmp/install-zivpn.sh
     else
