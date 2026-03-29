@@ -545,6 +545,7 @@ chmod +x install_up.sh
 }
 echo -e ""
 echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
+echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
 case $opt in
 01 | 1) clear ; m-sshovpn ;;
 02 | 2) clear ; m-vmess ;;
@@ -569,16 +570,17 @@ case $opt in
         m-zivpn
     fi
     ;;
-08 | 8) clear ; running ;;
-09 | 9) clear ; restartservice ;;
-10 | 10) clear ; m-system ;;
-11 | 11) clear ; m-bot ;;
-12 | 12) clear ; m-bot2 ;;
-13 | 13) clear ; m-backup ;;
-14 | 14) clear ; m-rebuild ;;
-15 | 15) clear ; m-update ;;
-16 | 16) clear ; wget -qO /usr/bin/m-zivpn "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn" && chmod +x /usr/bin/m-zivpn && m-zivpn ;;
-#88 | 88) clear ; new ;;
+08 | 8) clear ; bash /usr/bin/ex.sh ;;
+09 | 9) clear ; running ;;
+10 | 10) clear ; restartservice ;;
+11 | 11) clear ; m-system ;;
+12 | 12) clear ; m-bot ;;
+13 | 13) clear ; m-bot2 ;;
+14 | 14) clear ; m-backup ;;
+15 | 15) clear ; m-rebuild ;;
+16 | 16) clear ; m-update ;;
 77 | 77) clear ; newx ;;
 99 | 99) clear ; passwd ;;
+0 | 00) clear ; exit 0 ;;
+*) echo -e "${RED}Invalid Option!${NC}"; sleep 1; menu ;;
 esac
