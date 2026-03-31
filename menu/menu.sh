@@ -392,76 +392,75 @@ clear
 clear && clear && clear
 clear;clear;clear
 # --- BANNER ACIL SHOP BESAR ---
-echo -e " ${COLOR1}    ___  _____________   ${WH}   _____ __  ______  ____  ${NC}"
-echo -e " ${COLOR1}   /   | / ____/  _/  /   ${WH}  / ___// / / / __ \/ __ \ ${NC}"
-echo -e " ${COLOR1}  / /| |/ /    / // /     ${WH}  \__ \/ /_/ / / / / /_/ / ${NC}"
-echo -e " ${COLOR1} / ___ / /____/ // /___   ${WH} ___/ / __  / /_/ / ____/  ${NC}"
-echo -e " ${COLOR1}/_/  |_\____/___/_____/   ${WH}/____/_/ /_/\____/_/       ${NC}"
+echo -e " ${COLOR1}    ___   _____________   ${WH}   _____ __  ______  ____  ${NC}"
+echo -e " ${COLOR1}   /   | / ____/  _/  /   ${WH}  / ___// / / / __ \/ __ \ ${NC}"
+echo -e " ${COLOR1}  / /| |/ /    / // /     ${WH}  \__ \/ /_/ / / / / /_/ / ${NC}"
+echo -e " ${COLOR1} / ___ / /____/ // /___   ${WH} ___/ / __  / /_/ / ____/  ${NC}"
+echo -e " ${COLOR1}/_/  |_\____/___/_____/   ${WH}/____/_/ /_/\____/_/       ${NC}"
 echo -e " ${COLOR1}══════════════════════════════════════════════════════════${NC}"
-echo -e " ${WH}            • ACIL SHOP AUTOSCRIPT PREMIUM •             ${NC}"
+echo -e " ${WH}            • ACIL SHOP AUTOSCRIPT PREMIUM •             ${NC}"
 echo -e " ${COLOR1}══════════════════════════════════════════════════════════${NC}"
 
 # --- INFORMASI SISTEM (Perbaikan Spasi & Variabel) ---
-echo -e " $COLOR1      ══════════════════════════════════════════════${NC}"
-echo -e " $COLOR1  $NC${WH}    • DATE & TIME  ${COLOR1}: ${WH}$DATE2 WIB${NC}"
-echo -e " $COLOR1  $NC${WH}    • OS           ${COLOR1}: ${WH}$MODEL2${NC}"
-echo -e " $COLOR1  $NC${WH}    • RAM          ${COLOR1}: ${WH}$tram MB / $uram MB ${NC}"
-echo -e " $COLOR1  $NC${WH}    • ISP          ${COLOR1}: ${WH}$ISP${NC}"
-echo -e " $COLOR1  $NC${WH}    • CPU          ${COLOR1}: ${WH}$cpu_usage${NC}"
-echo -e " $COLOR1  $NC${WH}    • REGION       ${COLOR1}: ${WH}$CITY${NC}"
-echo -e " $COLOR1  $NC${WH}    • IP VPS       ${COLOR1}: ${WH}$MYIP${NC}"
-echo -e " $COLOR1  $NC${WH}    • DOMAIN       ${COLOR1}: ${WH}$(cat /etc/xray/domain)"
-echo -e " $COLOR1  $NC${WH}    • VERSION      ${COLOR1}: ${WH}V3.12"
-echo -e " $COLOR1      ══════════════════════════════════════════════${NC}"
+echo -e " $COLOR1      ══════════════════════════════════════════════${NC}"
+echo -e " $COLOR1  $NC${WH}    • DATE & TIME  ${COLOR1}: ${WH}$DATE2 WIB${NC}"
+echo -e " $COLOR1  $NC${WH}    • OS           ${COLOR1}: ${WH}$MODEL2${NC}"
+echo -e " $COLOR1  $NC${WH}    • RAM          ${COLOR1}: ${WH}$tram MB / $uram MB ${NC}"
+echo -e " $COLOR1  $NC${WH}    • ISP          ${COLOR1}: ${WH}$ISP${NC}"
+echo -e " $COLOR1  $NC${WH}    • CPU          ${COLOR1}: ${WH}$cpu_usage${NC}"
+echo -e " $COLOR1  $NC${WH}    • REGION       ${COLOR1}: ${WH}$CITY${NC}"
+echo -e " $COLOR1  $NC${WH}    • IP VPS       ${COLOR1}: ${WH}$MYIP${NC}"
+echo -e " $COLOR1  $NC${WH}    • DOMAIN       ${COLOR1}: ${WH}$(cat /etc/xray/domain)"
+echo -e " $COLOR1  $NC${WH}    • VERSION      ${COLOR1}: ${WH}V3.12"
+echo -e " $COLOR1      ══════════════════════════════════════════════${NC}"
 
 # --- CLIENT INFO ---
 echo -e " $COLOR1╭════════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│ ${WH}               • Client : $author • $NC"
+echo -e " $COLOR1│ ${WH}               • Client : $author • $NC"
 echo -e " $COLOR1╰════════════════════════════════════════════════════════╯${NC}"
 
 # --- SERVICE STATUS ---
-echo -e " ${COLOR1}  XRAY : ${status_xray}${COLOR1}   NGINX : ${status_nginx}${COLOR1}   DROPBEAR : ${status_beruangjatuh}${COLOR1}   UDP : ${status_udp}"
+echo -e " ${COLOR1}  XRAY : ${status_xray}${COLOR1}   NGINX : ${status_nginx}${COLOR1}   DROPBEAR : ${status_beruangjatuh}${COLOR1}   UDP : ${status_udp}"
 echo -e ""
 
 # --- MENU LIST ---
 echo -e " $COLOR1╭════════════════╮╭══════╮╭═════════════╮╭═══════════════╮${NC}"
-echo -e " $COLOR1│$NC   ${COLOR1}MENU AKUN${NC}    $COLOR1│$NC${COLOR1}${NC} ${COLOR1}STATUS ${NC} ${COLOR1}TOTAL PREMIUM ${NC} ${COLOR1}BANDWIDTH USED${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}1${COLOR1}]${NC}${COLOR1}• ${WH}SSH      $COLOR1│$NC   ${status_ws}${NC}     $total_ssh Accounts    ${NC}  ${COLOR1}TODAY ${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}2${COLOR1}]${NC}${COLOR1}• ${WH}VMESS      $COLOR1│$NC   ${status_xray}${NC}     $vmess Accounts    ${NC}  $today_tx $today_txv${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}3${COLOR1}]${NC}${COLOR1}• ${WH}VLESS      $COLOR1│$NC   ${status_xray}${NC}     $vless Accounts    ${NC}  ${COLOR1}YESTERDAY ${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}4${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN     $COLOR1│$NC   ${status_xray}${NC}     $trtls Accounts    ${NC}  $yesterday_tx $yesterday_txv${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}5${COLOR1}]${NC}${COLOR1}• ${WH}NOOBZVPN  $COLOR1│$NC   ${stat_noobz}${NC}     $jumlah_noobz Accounts     ${NC} ${COLOR1}THIS MONTH ${NC}" 
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}6${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN-GO $COLOR1│$NC   ${stat_trgo}${NC}     $jumlah_trgo Accounts     ${NC} $month_tx $month_txv${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}ZIVPN     $COLOR1│$NC   ${stat_zivpn}${NC}     $jumlah_zivpn Accounts    ${NC}                ${NC}"
+echo -e " $COLOR1│$NC   ${COLOR1}MENU AKUN${NC}    $COLOR1│$NC${COLOR1}${NC} ${COLOR1}STATUS ${NC} ${COLOR1}TOTAL PREMIUM ${NC} ${COLOR1}BANDWIDTH USED${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}1${COLOR1}]${NC}${COLOR1}• ${WH}SSH       $COLOR1│$NC   ${status_ws}${NC}     $total_ssh Accounts    ${NC}  ${COLOR1}TODAY ${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}2${COLOR1}]${NC}${COLOR1}• ${WH}VMESS     $COLOR1│$NC   ${status_xray}${NC}     $vmess Accounts    ${NC}  $today_tx $today_txv${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}3${COLOR1}]${NC}${COLOR1}• ${WH}VLESS     $COLOR1│$NC   ${status_xray}${NC}     $vless Accounts    ${NC}  ${COLOR1}YESTERDAY ${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}4${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN    $COLOR1│$NC   ${status_xray}${NC}     $trtls Accounts    ${NC}  $yesterday_tx $yesterday_txv${NC}"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}5${COLOR1}]${NC}${COLOR1}• ${WH}NOOBZVPN  $COLOR1│$NC   ${stat_noobz}${NC}     $jumlah_noobz Accounts     ${NC} ${COLOR1}THIS MONTH ${NC}" 
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}6${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN-GO $COLOR1│$NC   ${stat_trgo}${NC}     $jumlah_trgo Accounts     ${NC} $month_tx $month_txv${NC}"
 echo -e " $COLOR1╰════════════════╯╰══════╯╰═════════════╯╰═══════════════╯${NC}"
 
 # --- MENU NAVIGATION ---
 echo -e " $COLOR1╭═══════════════════════════╮╭═══════════════════════════╮${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED   $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE     $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}MENU SYSTEM         $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"   
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                $COLOR1││$NC ${COLOR1}[${WH}16${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED   $COLOR1││$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE      $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1} ${WH}MENU SYSTEM          $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"   
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                 $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
 echo -e " $COLOR1╰═══════════════════════════╯╰═══════════════════════════╯${NC}"
 
 # === PANEL ADMIN (jika aktif) ===
-if [ "$Isadmin" = "ON" ]; then 
-  echo -e "$COLOR1╭════════════════════ • ${WH}PANEL ADMIN VIP${NC}${COLOR1} • ════════════════╮${NC}"
-  echo -e "$COLOR1│  ${WH}[${COLOR1}13${WH}]${NC} ${COLOR1}• ${WH}RESELLER IP ${WH}[${COLOR1}MENU${WH}] $COLOR1 $NC"
-  ressee="m-ip2"
-  bottt="m-bot"
-  echo -e "$COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
+if [ "$Isadmin" = "ON" ]; then 
+  echo -e "$COLOR1╭════════════════════ • ${WH}PANEL ADMIN VIP${NC}${COLOR1} • ════════════════╮${NC}"
+  echo -e "$COLOR1│  ${WH}[${COLOR1}13${WH}]${NC} ${COLOR1}• ${WH}RESELLER IP ${WH}[${COLOR1}MENU${WH}] $COLOR1 $NC"
+  ressee="m-ip2"
+  bottt="m-bot"
+  echo -e "$COLOR1╰═════════════════════════════════════════════════════════╯${NC}"
 else
-  ressee="menu"
-  bottt="menu"
+  ressee="menu"
+  bottt="menu"
 fi
 
 # === PANEL MASA AKTIF (diletakkan paling bawah) ===
 DATE=$(date +'%Y-%m-%d')
 datediff() {
-  d1=$(date -d "$1" +%s)
-  d2=$(date -d "$2" +%s)
-  echo -e "$COLOR1 $NC Expiry In   : $(( (d1 - d2) / 86400 )) Days"
+  d1=$(date -d "$1" +%s)
+  d2=$(date -d "$2" +%s)
+  echo -e "$COLOR1 $NC Expiry In   : $(( (d1 - d2) / 86400 )) Days"
 }
 
 echo -e " $COLOR1╭════════════════════════════════════════════════════╮${NC}"
@@ -487,59 +486,59 @@ d1=$(date -d "$Exp2" +%s)
 d2=$(date -d "$today" +%s)
 certificate=$(( (d1 - d2) / 86400 ))
 domain=$(cat /etc/xray/domain)
-function restartservice(){  
+function restartservice(){    
 clear
 fun_bar() {
-    CMD[0]="$1"
-    CMD[1]="$2"
-    (
-        [[ -e $HOME/fim ]] && rm $HOME/fim
-        ${CMD[0]} -y >/dev/null 2>&1
-        ${CMD[1]} -y >/dev/null 2>&1
-        touch $HOME/fim
-    ) >/dev/null 2>&1 &
-    tput civis
-    echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
-    while true; do
-        for ((i = 0; i < 18; i++)); do
-            echo -ne "\033[0;32m#"
-            sleep 0.1s
-        done
-        [[ -e $HOME/fim ]] && rm $HOME/fim && break
-        echo -e "\033[0;33m]"
-        sleep 1s
-        tput cuu1
-        tput dl1
-        echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
-    done
-    echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
-    tput cnorm
+    CMD[0]="$1"
+    CMD[1]="$2"
+    (
+        [[ -e $HOME/fim ]] && rm $HOME/fim
+        ${CMD[0]} -y >/dev/null 2>&1
+        ${CMD[1]} -y >/dev/null 2>&1
+        touch $HOME/fim
+    ) >/dev/null 2>&1 &
+    tput civis
+    echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    while true; do
+        for ((i = 0; i < 18; i++)); do
+            echo -ne "\033[0;32m#"
+            sleep 0.1s
+        done
+        [[ -e $HOME/fim ]] && rm $HOME/fim && break
+        echo -e "\033[0;33m]"
+        sleep 1s
+        tput cuu1
+        tput dl1
+        echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+    done
+    echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
+    tput cnorm
 }
 res1() {
-    systemctl restart nginx
-    systemctl restart trojan-go
-    systemctl restart xray
-    systemctl restart noobzvpns
-    systemctl restart daemon
-    systemctl restart udp-custom
-    systemctl restart ws-dropbear
-    systemctl restart ws-stunnel
-    systemctl restart openvpn
-    systemctl restart cron
-    systemctl restart netfilter-persistent
-    systemctl restart squid
-    systemctl restart badvpn1
-    systemctl restart badvpn2
-    systemctl restart badvpn3
-    systemctl restart client
-    systemctl restart server
+    systemctl restart nginx
+    systemctl restart trojan-go
+    systemctl restart xray
+    systemctl restart noobzvpns
+    systemctl restart daemon
+    systemctl restart udp-custom
+    systemctl restart ws-dropbear
+    systemctl restart ws-stunnel
+    systemctl restart openvpn
+    systemctl restart cron
+    systemctl restart netfilter-persistent
+    systemctl restart squid
+    systemctl restart badvpn1
+    systemctl restart badvpn2
+    systemctl restart badvpn3
+    systemctl restart client
+    systemctl restart server
 }
 clear
 echo -e "$COLOR1 ╭══════════════════════════════════════════╮${NC}"
-echo -e "$COLOR1 ${NC} ${COLBG2}          ${WH}RESTART SERVICE VPS             ${NC} $COLOR1 $NC"
+echo -e "$COLOR1 ${NC} ${COLBG2}          ${WH}RESTART SERVICE VPS             ${NC} $COLOR1 $NC"
 echo -e "$COLOR1 ╰══════════════════════════════════════════╯${NC}"
 echo -e ""
-echo -e "  \033[1;91m Restart All Service... \033[1;37m"
+echo -e "  \033[1;91m Restart All Service... \033[1;37m"
 fun_bar 'res1'
 
 echo -e ""
@@ -554,7 +553,7 @@ chmod +x install_up.sh
 ./install_up.sh
 }
 echo -e ""
-echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
+echo -ne " ${WH}Select Menu 1-15 ${COLOR1}: ${WH}"; read opt
 case $opt in
 01 | 1) clear ; m-sshovpn ;;
 02 | 2) clear ; m-vmess ;;
@@ -562,34 +561,16 @@ case $opt in
 04 | 4) clear ; m-trojan ;;
 05 | 5) clear ; m-noobz ;;
 06 | 6) clear ; m-trgo ;;
-07 | 7) 
-    clear
-    # Cek apakah ZIVPN sudah terinstall
-    if [ ! -f "/usr/local/bin/zivpn" ]; then
-        echo -e " ${YELLOW}ZIVPN belum terinstall. Memulai proses instalasi...${NC}"
-        sleep 2
-        # Eksekusi script installer dari Github
-        wget -qO /tmp/install-zivpn.sh "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn"
-        chmod +x /tmp/install-zivpn.sh
-        /tmp/install-zivpn.sh
-    else
-        # Jika sudah terinstall, buka menu pengelolaannya
-        wget -qO /usr/bin/m-zivpn "https://raw.githubusercontent.com/Pujianto1219/kvm/refs/heads/main/menu/m-zivpn"
-        chmod +x /usr/bin/m-zivpn
-        m-zivpn
-    fi
-    ;;
-08 | 8) clear ; bash /usr/bin/ex.sh ;;
-09 | 9) clear ; running ;;
-10 | 10) clear ; restartservice ;;
-11 | 11) clear ; m-system ;;
-12 | 12) clear ; m-bot ;;
-13 | 13) clear ; m-bot2 ;;
-14 | 14) clear ; m-backup ;;
-15 | 15) clear ; m-rebuild ;;
-16 | 16) clear ; m-update ;;
+07 | 7) clear ; bash /usr/bin/ex.sh ;;
+08 | 8) clear ; running ;;
+09 | 9) clear ; restartservice ;;
+10 | 10) clear ; m-system ;;
+11 | 11) clear ; m-bot ;;
+12 | 12) clear ; m-bot2 ;;
+13 | 13) clear ; m-backup ;;
+14 | 14) clear ; m-rebuild ;;
+15 | 15) clear ; m-update ;;
+#88 | 88) clear ; new ;;
 77 | 77) clear ; newx ;;
 99 | 99) clear ; passwd ;;
-0 | 00) clear ; exit 0 ;;
-*) echo -e "${RED}Invalid Option!${NC}"; sleep 1; menu ;;
 esac
