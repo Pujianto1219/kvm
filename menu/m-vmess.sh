@@ -299,79 +299,79 @@ _______________________________________________________
 END
 if [ ${Quota} = '9999' ]; then
 TEXT="
-◇━━━━━━━━━━━━━━━━━◇
-Premium Vmess Account
-◇━━━━━━━━━━━━━━━━━◇
-User         : ${user}
-Domain       : <code>${domain}</code>
-Login Limit  : ${iplim} IP
-ISP          : ${ISP}
-CITY         : ${CITY}
+🧿──────────────────────────────🧿
+       ✨ VMESS ACCOUNT ✨
+🔷 Informasi Akun Anda
+────────────────────────────────
+Domain       : ${domain}
+Username     : <code>${user}</code>
+UUID         : <code>${uuid}</code>
 Port TLS     : 443
 Port NTLS    : 80, 8080
 Port GRPC    : 443
-UUID         : <code>${uuid}</code>
 AlterId      : 0
 Security     : auto
 Network      : WS or gRPC
 Path         : <code>/vmess</code>
 Path Support : <code>https://bug.com/vmess</code>
 ServiceName  : <code>vmess-grpc</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link TLS     :
+ISP          : ${ISP}
+City         : ${CITY}
+────────────────────────────────
+🔘 Link TLS
 <code>${vmesslink1}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link NTLS    :
+🧿──────────────────────────────🧿
+🔘 Link NTLS
 <code>${vmesslink2}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link GRPC    :
+🧿──────────────────────────────🧿
+🔘 Link GRPC
 <code>${vmesslink3}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Format OpenClash :
-https://$domain:81/vmess-$user.txt
-◇━━━━━━━━━━━━━━━━━◇
-Expired Until    : $exp
-◇━━━━━━━━━━━━━━━━━◇
-$author
-◇━━━━━━━━━━━━━━━━━◇
+🧿──────────────────────────────🧿
+🔘 Format OpenClash: 
+<a href="https://${domain}:81/vmess-${user}.txt">Click Link</a>
+🧿──────────────────────────────🧿
+🏷️ IP Limit : ${iplim} IP
+⏳ Expired  : ${exp}
+🧿──────────────────────────────🧿
+♨️ Terimakasih telah menggunakan layanan $author ♨️
 "
 else
 TEXT="
-◇━━━━━━━━━━━━━━━━━◇
-Premium Vmess Account
-◇━━━━━━━━━━━━━━━━━◇
-User         : ${user}
-Domain       : <code>${domain}</code>
-Login Limit  : ${iplim} IP
-Quota Limit  : ${Quota} GB
-ISP          : ${ISP}
-CITY         : ${CITY}
-Expired On   : $exp
+🧿──────────────────────────────🧿
+       ✨ VMESS ACCOUNT ✨
+🔷 Informasi Akun Anda
+────────────────────────────────
+Domain       : ${domain}
+Username     : <code>${user}</code>
+UUID         : <code>${uuid}</code>
 Port TLS     : 443
 Port NTLS    : 80, 8080
 Port GRPC    : 443
-UUID         : <code>${uuid}</code>
 AlterId      : 0
 Security     : auto
 Network      : WS or gRPC
 Path         : <code>/vmess</code>
 Path Support : <code>https://bug.com/vmess</code>
 ServiceName  : <code>vmess-grpc</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link TLS     :
+ISP          : ${ISP}
+City         : ${CITY}
+────────────────────────────────
+🔘 Link TLS
 <code>${vmesslink1}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link NTLS    :
+🧿──────────────────────────────🧿
+🔘 Link NTLS
 <code>${vmesslink2}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Link GRPC    :
+🧿──────────────────────────────🧿
+🔘 Link GRPC
 <code>${vmesslink3}</code>
-◇━━━━━━━━━━━━━━━━━◇
-Format OpenClash :
-https://$domain:81/vmess-$user.txt
-◇━━━━━━━━━━━━━━━━━◇
-$author
-◇━━━━━━━━━━━━━━━━━◇
+🧿──────────────────────────────🧿
+🔘 Format OpenClash: 
+<a href="https://${domain}:81/vmess-${user}.txt">Click Link</a>
+🧿──────────────────────────────🧿
+🏷️ IP Limit : ${iplim} IP
+⏳ Expired  : ${exp}
+🧿──────────────────────────────🧿
+♨️ Terimakasih telah menggunakan layanan $author ♨️
 "
 fi
 curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
