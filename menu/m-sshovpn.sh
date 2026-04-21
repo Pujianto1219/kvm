@@ -173,7 +173,7 @@ SSH WS     : 80, 8080, 8880, 2086
 <code>GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
 🧿──────────────────────────────🧿
 🔘 Save Account: 
-<a href="https://${domain}:81/ssh-${username}.txt">Click Link</a>
+<a href=\"https://${domain}:81/ssh-${username}.txt\">Click Link</a>
 🧿──────────────────────────────🧿
 🏷️ IP Limit : ${iplimit} IP
 ⏳ Expired  : ${tglExp} (${exp} Hari)
@@ -205,7 +205,7 @@ SSH WS     : 80, 8080, 8880, 2086
 <code>GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
 🧿──────────────────────────────🧿
 🔘 Save Account: 
-<a href="https://${domain}:81/ssh-${username}.txt">Click Link</a>
+<a href=\"https://${domain}:81/ssh-${username}.txt\">Click Link</a>
 🧿──────────────────────────────🧿
 🏷️ IP Limit : ${iplimit} IP
 ⏳ Expired  : ${tglExp} (${exp} Hari)
@@ -213,14 +213,18 @@ SSH WS     : 80, 8080, 8880, 2086
 ♨️ Terimakasih telah menggunakan layanan AcilShop ♨️
 "
 fi
-curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
+
+# PERBAIKAN CURL 1: Gunakan --data-urlencode untuk variabel TEXT
+curl -s --max-time "$TIMES" -d "chat_id=$CHATID&disable_web_page_preview=1&parse_mode=html" --data-urlencode "text=$TEXT" "$URL" >/dev/null
+
 cd
 if [ ! -e /etc/tele ]; then
-echo -ne
+    echo -ne
 else
-echo "$TEXT" > /etc/notiftele
-bash /etc/tele
+    echo "$TEXT" > /etc/notiftele
+    bash /etc/tele
 fi
+
 user2=$(echo "$Login" | cut -c 1-3)
 TIME2=$(date +'%Y-%m-%d %H:%M:%S')
 TEXT2="
@@ -236,7 +240,10 @@ TEXT2="
 <b>DURASI  :</b> <code>$masaaktif Hari </code>
 <code>◇━━━━━━━━━━━━━━━━━◇</code>
 <i>Notif Pembelian Akun Ssh..</i>"
-curl -s --max-time $TIMES -d "chat_id=$CHATID2&disable_web_page_preview=1&text=$TEXT2&parse_mode=html" $URL2 >/dev/null
+
+# PERBAIKAN CURL 2: Gunakan --data-urlencode untuk variabel TEXT2
+curl -s --max-time "$TIMES" -d "chat_id=$CHATID2&disable_web_page_preview=1&parse_mode=html" --data-urlencode "text=$TEXT2" "$URL2" >/dev/null
+
 clear
 echo -e " "
 echo -e " "
