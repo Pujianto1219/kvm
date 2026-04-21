@@ -150,94 +150,67 @@ _______________________________
 END
 if [[ -e /etc/cloudfront ]]; then
 TEXT="
-◇━━━━━━━━━━━━━━━━━◇
-SSH Premium Account
-◇━━━━━━━━━━━━━━━━━◇
-Username        :  <code>$Login</code>
-Password        :  <code>$Pass</code>
-Expired On       :  $exp
-◇━━━━━━━━━━━━━━━━━◇
-ISP              :  $ISP
-CITY             :  $CITY
-Host             :  <code>$domen</code>
-Login Limit      :  ${iplim} IP
-Port OpenSSH    :  22
-Port Dropbear    :  109, 143
-Port SSH WS     :  80, 7788, 8181, 8282
-Port SSH SSL WS :  443
-Port SSL/TLS     :  8443,8880
-Port OVPN WS SSL :  2086
-Port OVPN SSL    :  990
-Port OVPN TCP    :  1194
-Port OVPN UDP    :  2200
-Proxy Squid        :  3128
-BadVPN UDP       :  7100, 7300, 7300
-◇━━━━━━━━━━━━━━━━━◇
-SSH UDP VIRAL : <code>$domen:1-65535@$Login:$Pass</code>
-◇━━━━━━━━━━━━━━━━━◇
-HTTP COSTUM WS : <code>$domen:80@$Login:$Pass</code>
-◇━━━━━━━━━━━━━━━━━◇
-Host Slowdns    :  <code>$sldomain</code>
-Port Slowdns     :  80, 443, 53
-Pub Key          :  <code> $slkey</code>
-◇━━━━━━━━━━━━━━━━━◇
-Payload WS/WSS   :
-<code>GET / HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
-◇━━━━━━━━━━━━━━━━━◇
-OpenVPN SSL      :  https://$domain:81/ssl.ovpn
-OpenVPN TCP      :  https://$domain:81/tcp.ovpn
-OpenVPN UDP      :  https://$domain:81/udp.ovpn
-◇━━━━━━━━━━━━━━━━━◇
-Save Link Account: https://$domain:81/ssh-$Login.txt
-◇━━━━━━━━━━━━━━━━━◇
-$author
-◇━━━━━━━━━━━━━━━━━◇
+🧿──────────────────────────────🧿
+       ✨ SSH ACCOUNT ✨
+🔷 Informasi Akun Anda
+────────────────────────────────
+Domain     : ${domain}
+Username   : <code>${username}</code>
+Password   : <code>${password}</code>
+Port TLS   : 443, 8443
+Port HTTP  : 80, 8080, 2086, 8880
+OpenSSH    : 22
+UdpSSH     : 1-65535
+DNS        : 53, 2222
+Dropbear   : 109, 143
+BadVPN UDP : 7100, 7200, 7300
+SSH WS     : 80, 8080, 8880, 2086
+────────────────────────────────
+🔘 HTTP CUSTOM
+<code>${domain}:80@${username}:${password}</code>
+🧿──────────────────────────────🧿
+🔘 Payload:
+<code>GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
+🧿──────────────────────────────🧿
+🔘 Save Account: 
+<a href="https://${domain}:81/ssh-${username}.txt">Click Link</a>
+🧿──────────────────────────────🧿
+🏷️ IP Limit : ${iplimit} IP
+⏳ Expired  : ${tglExp} (${exp} Hari)
+🧿──────────────────────────────🧿
+♨️ Terimakasih telah menggunakan layanan AcilShop ♨️
 "
 else
 TEXT="
-◇━━━━━━━━━━━━━━━━━◇
-SSH Premium Account
-◇━━━━━━━━━━━━━━━━━◇
-Username        :  <code>$Login</code>
-Password        :  <code>$Pass</code>
-Masa Aktif      :  $masaaktif
-Expired On      :  $exp
-◇━━━━━━━━━━━━━━━━━◇
-ISP              :  $ISP
-CITY             :  $CITY
-Host             :  <code>$domen</code>
-Login Limit      :  ${iplim} IP
-Port OpenSSH     :  22
-Port Dropbear    :  109, 143
-Port SSH WS      :  80, 7788, 8181, 8282
-Port SSH SSL WS  :  443
-Port SSL/TLS     :  8443,8880
-Port OVPN WS SSL :  2086
-Port OVPN SSL    :  990
-Port OVPN TCP    :  1194
-Port OVPN UDP    :  2200
-Proxy Squid      :  3128
-BadVPN UDP       :  7100, 7300, 7300
-◇━━━━━━━━━━━━━━━━━◇
-SSH UDP VIRAL : <code>$domen:1-65535@$Login:$Pass</code>
-◇━━━━━━━━━━━━━━━━━◇
-HTTP COSTUM WS : <code>$domen:80@$Login:$Pass</code>
-◇━━━━━━━━━━━━━━━━━◇
-Host Slowdns    :  <code>$sldomain</code>
-Port Slowdns     :  80, 443, 53
-Pub Key          :  <code> $slkey</code>
-◇━━━━━━━━━━━━━━━━━◇
-Payload WS/WSS   :
-<code>GET / HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
-◇━━━━━━━━━━━━━━━━━◇
-OpenVPN SSL      :  https://$domain:81/ssl.ovpn
-OpenVPN TCP      :  https://$domain:81/tcp.ovpn
-OpenVPN UDP      :  https://$domain:81/udp.ovpn
-◇━━━━━━━━━━━━━━━━━◇
-Save Link Account: https://$domain:81/ssh-$Login.txt
-◇━━━━━━━━━━━━━━━━━◇
-$author
-◇━━━━━━━━━━━━━━━━━◇
+🧿──────────────────────────────🧿
+       ✨ SSH ACCOUNT ✨
+🔷 Informasi Akun Anda
+────────────────────────────────
+Domain     : ${domain}
+Username   : <code>${username}</code>
+Password   : <code>${password}</code>
+Port TLS   : 443, 8443
+Port HTTP  : 80, 8080, 2086, 8880
+OpenSSH    : 22
+UdpSSH     : 1-65535
+DNS        : 53, 2222
+Dropbear   : 109, 143
+BadVPN UDP : 7100, 7200, 7300
+SSH WS     : 80, 8080, 8880, 2086
+────────────────────────────────
+🔘 HTTP CUSTOM
+<code>${domain}:80@${username}:${password}</code>
+🧿──────────────────────────────🧿
+🔘 Payload:
+<code>GET /cdn-cgi/trace HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]</code>
+🧿──────────────────────────────🧿
+🔘 Save Account: 
+<a href="https://${domain}:81/ssh-${username}.txt">Click Link</a>
+🧿──────────────────────────────🧿
+🏷️ IP Limit : ${iplimit} IP
+⏳ Expired  : ${tglExp} (${exp} Hari)
+🧿──────────────────────────────🧿
+♨️ Terimakasih telah menggunakan layanan AcilShop ♨️
 "
 fi
 curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
