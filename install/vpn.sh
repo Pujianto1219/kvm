@@ -16,7 +16,7 @@ MYIP=$(wget -qO- ipv4.icanhazip.com);
 echo "Checking VPS"
 CEKEXPIRED () {
     today=$(date -d +1day +%Y-%m-%d)
-    Exp1=$(curl -sS https://raw.githubusercontent.com/yasrilpujianto-ship-it/ip/main/ip | grep $MYIP | awk '{print $3}')
+    Exp1=$(curl -sS https://raw.githubusercontent.com/Pujianto1219/ip/main/ip | grep $MYIP | awk '{print $3}')
     if [[ $today < $Exp1 ]]; then
     echo -e "\e[32mSTATUS SCRIPT AKTIF...\e[0m"
     else
@@ -24,7 +24,7 @@ CEKEXPIRED () {
     exit 0
 fi
 }
-IZIN=$(curl -sS https://raw.githubusercontent.com/yasrilpujianto-ship-it/ip/main/ip | awk '{print $4}' | grep $MYIP)
+IZIN=$(curl -sS https://raw.githubusercontent.com/Pujianto1219/ip/main/ip | awk '{print $4}' | grep $MYIP)
 if [ $MYIP = $IZIN ]; then
 echo -e "\e[32mPermission Accepted...\e[0m"
 CEKEXPIRED
@@ -37,7 +37,7 @@ clear
 # Mod By SL
 # ==================================================
 # Link Hosting Kalian
-url="raw.githubusercontent.com/yasrilpujianto-ship-it/kvm/main/install"
+url="raw.githubusercontent.com/Pujianto1219/kvm/main/install"
 
 # initialisasi var
 export DEBIAN_FRONTEND=noninteractive
