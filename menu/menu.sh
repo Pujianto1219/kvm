@@ -308,6 +308,7 @@ menu
 function intro_acilshop(){
     clear
     # --- Definisi Warna Lokal ---
+    local RED='\033[0;31m'
     local RED_BG='\033[41;37m'
     local CYAN='\033[0;36m'
     local BLUE='\033[1;34m'
@@ -321,37 +322,45 @@ function intro_acilshop(){
     local sys_ip=$(curl -sS ipv4.icanhazip.com)
     local sys_client=$(cat /etc/profil 2>/dev/null || echo "Admin")
     
-    # --- Logika Hitung Masa Aktif ---
-    local exp_date=$(curl -sS https://raw.githubusercontent.com/Pujianto1219/ip/main/ip | grep $sys_ip | awk '{print $3}')
+    # --- Logika Hitung Masa Aktif & Pengecekan Lifetime ---
+    # Mengambil tanggal expired dari raw github berdasarkan IP Server
+    local exp_date=$(curl -sS https://raw.githubusercontent.com/Pujianto1219/ip/main/ip | grep -w "$sys_ip" | awk '{print $3}')
+    
     if [[ -z "$exp_date" ]]; then
+        # Jika IP tidak terdaftar / kosong
         local days_left="Unknown"
         local status_verif="${RED}FAILED / UNREGISTERED${NC}"
-    else
-        local d1=$(date -d "$exp_date" +%s)
-        local d2=$(date -d "$(date +%Y-%m-%d)" +%s)
-        local days_count=$(( (d1 - d2) / 86400 ))
         
-        if [[ $days_count -ge 0 ]]; then
-            local days_left="${YELLOW}${days_count} Days Remaining${NC}"
-            local status_verif="${GREEN}OFFICIALLY VERIFIED${NC}"
+    elif [[ "${exp_date,,}" == *"lifetime"* || "$exp_date" == *"9999"* ]]; then
+        # Jika terdaftar sebagai LIFETIME (langsung potong jalur agar 'date' tidak error)
+        local days_left="${GREEN}LIFETIME (Synchronized)${NC}"
+        local status_verif="${GREEN}OFFICIALLY VERIFIED${NC}"
+        
+    else
+        # Jika terdaftar sebagai tanggal biasa (misal: 2026-10-12)
+        local d1=$(date -d "$exp_date" +%s 2>/dev/null)
+        local d2=$(date -d "$(date +%Y-%m-%d)" +%s 2>/dev/null)
+        
+        # Validasi tambahan untuk memastikan format tanggal dari server valid
+        if [[ -n "$d1" ]]; then
+            local days_count=$(( (d1 - d2) / 86400 ))
+            
+            if [[ $days_count -ge 0 ]]; then
+                local days_left="${YELLOW}${days_count} Days Remaining${NC}"
+                local status_verif="${GREEN}OFFICIALLY VERIFIED${NC}"
+            else
+                local days_left="${RED}EXPIRED (${days_count} Days)${NC}"
+                local status_verif="${RED}LICENSE EXPIRED${NC}"
+            fi
         else
-            local days_left="${RED}EXPIRED (${days_count} Days)${NC}"
-            local status_verif="${RED}LICENSE EXPIRED${NC}"
+            # Jika admin salah ketik format di github (bukan tanggal & bukan lifetime)
+            local days_left="${RED}Invalid Data Format${NC}"
+            local status_verif="${RED}ERROR${NC}"
         fi
     fi
 
     echo -e ""
-    # --- LOGIKA PENGECEKAN LIFETIME ---
-# Asumsi variabel $masa_aktif berisi data expired dari IP Anda. 
-# Jika isinya "lifetime", "LIFETIME", atau angka tertentu (misal 9999), ubah outputnya.
-if [[ "${masa_aktif,,}" == "lifetime" || "$masa_aktif" == "9999" ]]; then
-    days_left="${GREEN}LIFETIME (Synchronized)${NC}"
-else
-    # Jika bukan lifetime, tampilkan sisa hari normal
-    days_left="${YELLOW}$masa_aktif Days Left${NC}"
-fi
-
-# --- BANNER BESAR & KEREN (CYBER STYLE) ---
+    # --- BANNER BESAR & KEREN (CYBER STYLE) ---
     echo -e "${CYAN}    ___   _____________   ${BLUE}   _____ __  ______  ____  "
     echo -e "${CYAN}   /   | / ____/  _/  /   ${BLUE}  / ___// / / / __ \/ __ \ "
     echo -e "${CYAN}  / /| |/ /    / // /     ${BLUE}  \__ \/ /_/ / / / / /_/ / "
@@ -383,6 +392,7 @@ fi
     echo -e ""
     echo -e "   ${WH}Press [ ${YELLOW}ENTER${WH} ] to Access Menu...${NC}"
     read -n 1 -s -r
+}
 
 # EKSEKUSI FUNGSI DI SINI
 intro_acilshop
@@ -454,28 +464,32 @@ else
   bottt="menu"
 fi
 
-# === PANEL MASA AKTIF (diletakkan paling bawah) ===
+# === PANEL MASA AKTIF ===
 DATE=$(date +'%Y-%m-%d')
 
+# Fungsi perhitungan hari, jalankan HANYA jika format tanggal valid
 datediff() {
-  # Tambahkan 2>/dev/null untuk menyembunyikan error jika input tanggal tidak valid
+  # Cek jika input mengandung kata 'lifetime' agar tidak diproses oleh 'date'
+  if [[ "${1,,}" == *"lifetime"* || "${2,,}" == *"lifetime"* ]]; then
+      return
+  fi
+
+  # Tangkap output date, sembunyikan error
   d1=$(date -d "$1" +%s 2>/dev/null)
   d2=$(date -d "$2" +%s 2>/dev/null)
   
-  # Cek jika d1 dan d2 valid (berupa angka)
+  # Jika kalkulasi berhasil (bukan kosong), tampilkan hari
   if [[ -n "$d1" && -n "$d2" ]]; then
       echo -e "$COLOR1 $NC Expiry In   : $(( (d1 - d2) / 86400 )) Days"
   fi
 }
 
 # --- LOGIKA PENGECEKAN LIFETIME ---
-# Mengecek apakah variabel masa aktif berisi "lifetime" (huruf besar/kecil) atau "9999"
-if [[ "${certificate,,}" == "lifetime" || "${Exp2,,}" == "lifetime" || "$certificate" == "9999" ]]; then
-    # Format Tampilan Jika Lifetime
+# Menggunakan tanda bintang (*) agar terbaca walau ada spasi tersembunyi
+if [[ "${certificate,,}" == *"lifetime"* || "${Exp2,,}" == *"lifetime"* || "$certificate" == *"9999"* ]]; then
     info_masa_aktif="${GREEN}LIFETIME${NC}"
     info_sisa_waktu="$COLOR1 $NC Status      : ${GREEN}Tersinkron (Lifetime Access)${NC}"
 else
-    # Format Tampilan Normal (Jika bukan Lifetime)
     info_masa_aktif="${WH}$certificate Hari${NC} ${COLOR1}/ ${WH}$Exp2${NC}"
     info_sisa_waktu="$(datediff "$Exp2" "$DATE")"
 fi
