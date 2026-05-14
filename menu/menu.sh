@@ -341,7 +341,17 @@ function intro_acilshop(){
     fi
 
     echo -e ""
-    # --- BANNER BESAR & KEREN (CYBER STYLE) ---
+    # --- LOGIKA PENGECEKAN LIFETIME ---
+# Asumsi variabel $masa_aktif berisi data expired dari IP Anda. 
+# Jika isinya "lifetime", "LIFETIME", atau angka tertentu (misal 9999), ubah outputnya.
+if [[ "${masa_aktif,,}" == "lifetime" || "$masa_aktif" == "9999" ]]; then
+    days_left="${GREEN}LIFETIME (Synchronized)${NC}"
+else
+    # Jika bukan lifetime, tampilkan sisa hari normal
+    days_left="${YELLOW}$masa_aktif Days Left${NC}"
+fi
+
+# --- BANNER BESAR & KEREN (CYBER STYLE) ---
     echo -e "${CYAN}    ___   _____________   ${BLUE}   _____ __  ______  ____  "
     echo -e "${CYAN}   /   | / ____/  _/  /   ${BLUE}  / ___// / / / __ \/ __ \ "
     echo -e "${CYAN}  / /| |/ /    / // /     ${BLUE}  \__ \/ /_/ / / / / /_/ / "
@@ -373,7 +383,6 @@ function intro_acilshop(){
     echo -e ""
     echo -e "   ${WH}Press [ ${YELLOW}ENTER${WH} ] to Access Menu...${NC}"
     read -n 1 -s -r
-}
 
 # EKSEKUSI FUNGSI DI SINI
 intro_acilshop
@@ -447,15 +456,34 @@ fi
 
 # === PANEL MASA AKTIF (diletakkan paling bawah) ===
 DATE=$(date +'%Y-%m-%d')
+
 datediff() {
-  d1=$(date -d "$1" +%s)
-  d2=$(date -d "$2" +%s)
-  echo -e "$COLOR1 $NC Expiry In   : $(( (d1 - d2) / 86400 )) Days"
+  # Tambahkan 2>/dev/null untuk menyembunyikan error jika input tanggal tidak valid
+  d1=$(date -d "$1" +%s 2>/dev/null)
+  d2=$(date -d "$2" +%s 2>/dev/null)
+  
+  # Cek jika d1 dan d2 valid (berupa angka)
+  if [[ -n "$d1" && -n "$d2" ]]; then
+      echo -e "$COLOR1 $NC Expiry In   : $(( (d1 - d2) / 86400 )) Days"
+  fi
 }
 
+# --- LOGIKA PENGECEKAN LIFETIME ---
+# Mengecek apakah variabel masa aktif berisi "lifetime" (huruf besar/kecil) atau "9999"
+if [[ "${certificate,,}" == "lifetime" || "${Exp2,,}" == "lifetime" || "$certificate" == "9999" ]]; then
+    # Format Tampilan Jika Lifetime
+    info_masa_aktif="${GREEN}LIFETIME${NC}"
+    info_sisa_waktu="$COLOR1 $NC Status      : ${GREEN}Tersinkron (Lifetime Access)${NC}"
+else
+    # Format Tampilan Normal (Jika bukan Lifetime)
+    info_masa_aktif="${WH}$certificate Hari${NC} ${COLOR1}/ ${WH}$Exp2${NC}"
+    info_sisa_waktu="$(datediff "$Exp2" "$DATE")"
+fi
+
+# --- RENDER PANEL KE LAYAR ---
 echo -e " $COLOR1╭════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│ ${WH}• MASA AKTIF${NC} $COLOR1: ${WH}$certificate Hari${NC} ${COLOR1}/ ${WH}$Exp2${NC} ${COLOR1}•${NC}${WH}$sts${NC}"
-echo -e " $COLOR1│ ${WH}• SISA WAKTU${NC} $COLOR1: ${NC}$(datediff "$Exp2" "$DATE")"
+echo -e " $COLOR1│ ${WH}• MASA AKTIF${NC} $COLOR1: ${info_masa_aktif} ${COLOR1}•${NC}${WH}$sts${NC}"
+echo -e " $COLOR1│ ${WH}• SISA WAKTU${NC} $COLOR1: ${NC}${info_sisa_waktu}"
 echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
 function newx(){
 clear
