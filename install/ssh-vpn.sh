@@ -364,10 +364,13 @@ netfilter-persistent reload
 
 # download script
 cd /usr/bin
-wget -O issue "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/issue.net"
-wget -O m-theme "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-theme.sh"
-wget -O speedtest "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/speedtest_cli.py"
-wget -O xp "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/xp.sh"
+wget -q -O issue "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/issue.net"
+wget -q -O m-theme "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-theme.sh"
+wget -q -O speedtest "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/speedtest_cli.py"
+wget -q -O xp "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/xp.sh"
+
+# Membersihkan format Windows (CRLF) menjadi Linux (LF)
+dos2unix issue m-theme speedtest xp >/dev/null 2>&1
 
 chmod +x issue
 chmod +x m-theme
@@ -375,46 +378,39 @@ chmod +x speedtest
 chmod +x xp
 cd
 
-#if [ ! -f "/etc/cron.d/xp_otm" ]; then
-cat> /etc/cron.d/xp_otm << END
+# Setup Cronjobs
+cat > /etc/cron.d/xp_otm << END
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 0 * * * root /usr/bin/xp
 END
-#fi
 
-#if [ ! -f "/etc/cron.d/bckp_otm" ]; then
-cat> /etc/cron.d/bckp_otm << END
+cat > /etc/cron.d/bckp_otm << END
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 5 * * * root /usr/bin/bottelegram
 END
-#fi
 
-#if [ ! -f "/etc/cron.d/autocpu" ]; then
-cat> /etc/cron.d/autocpu << END
+cat > /etc/cron.d/autocpu << END
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 */1 * * * * root /usr/bin/autocpu
 END
-#fi
 
-cat> /etc/cron.d/tendang << END
+cat > /etc/cron.d/tendang << END
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 */1 * * * * root /usr/bin/tendang
 END
 
-cat> /etc/cron.d/xraylimit << END
+cat > /etc/cron.d/xraylimit << END
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-0
 */1 * * * * root /usr/bin/xraylimit
 END
 
-service cron restart >/dev/null 2>&1
-service cron reload >/dev/null 2>&1
-service cron start >/dev/null 2>&1
+# Restart Service Cron (Diringkas menjadi 1 baris)
+systemctl restart cron >/dev/null 2>&1
 
 # remove unnecessary files
 apt autoclean -y >/dev/null 2>&1
@@ -424,6 +420,7 @@ apt-get -y --purge remove apache2* >/dev/null 2>&1
 apt-get -y --purge remove bind9* >/dev/null 2>&1
 apt-get -y remove sendmail* >/dev/null 2>&1
 apt autoremove -y >/dev/null 2>&1
+
 # finishing
 cd
 chown -R www-data:www-data /home/vps/public_html
