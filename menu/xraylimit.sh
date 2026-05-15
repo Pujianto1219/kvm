@@ -38,6 +38,9 @@ CITY=$(cat /etc/xray/city 2>/dev/null)
 DATE=$(date +'%Y-%m-%d')
 TIME=$(date +'%H:%M:%S')
 
+# Variabel Global Penanda Restart
+RESTART_XRAY=0
+
 # ---------------------------------------------------------
 # FUNGSI BANTUAN
 # ---------------------------------------------------------
@@ -134,7 +137,9 @@ process_xray() {
                 sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
                 sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
                 rm -f ${dir_limit}/${usr}
-                systemctl restart xray
+                
+                # Tandai agar Xray direstart di akhir script
+                RESTART_XRAY=1
                 continue # Skip cek IP jika sudah terhapus
             fi
 
@@ -155,7 +160,7 @@ process_xray() {
                 if [ "$pelanggaran_ke" -lt "$limit_notif" ]; then
                     TEXT="
 🧿───────────────────🧿            
-           ⚠️ PERINGATAN MULTI LOGIN ⚠️
+            ⚠️ PERINGATAN MULTI LOGIN ⚠️
 🔹 Informasi Pelanggaran
 ┌─────────────────────
 │Protocol   : <b>${protocol^^}</b>
@@ -244,7 +249,9 @@ process_xray() {
                     curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT_SANKSI&parse_mode=html" $URL >/dev/null
                     
                     rm -rf ${dir_conf}/${usr}login
-                    systemctl restart xray >/dev/null 2>&1
+                    
+                    # Tandai agar Xray direstart di akhir script
+                    RESTART_XRAY=1
                 fi
             fi
         done
@@ -257,3 +264,10 @@ process_xray() {
 process_xray "vmess" "#vm" "#vmg"
 process_xray "vless" "#vl" "#vlg"
 process_xray "trojan" "#tr" "#trg"
+
+# ---------------------------------------------------------
+# RESTART XRAY HANYA JIKA ADA PELANGGARAN
+# ---------------------------------------------------------
+if [[ "$RESTART_XRAY" -eq 1 ]]; then
+    systemctl restart xray >/dev/null 2>&1
+fi
