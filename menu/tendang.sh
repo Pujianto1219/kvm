@@ -1,5 +1,5 @@
 #!/bin/bash
-biji=`date +"%Y-%m-%d" -d "$dateFromServer"`
+biji=$(date +"%Y-%m-%d" -d "$dateFromServer")
 colornow=$(cat /etc/rmbl/theme/color.conf 2>/dev/null || echo "cyan")
 NC="\e[0m"
 RED="\033[0;31m"
@@ -7,32 +7,28 @@ COLOR1="$(cat /etc/rmbl/theme/$colornow 2>/dev/null | grep -w "TEXT" | cut -d: -
 COLBG1="$(cat /etc/rmbl/theme/$colornow 2>/dev/null | grep -w "BG" | cut -d: -f2|sed 's/ //g')"
 WH='\033[1;37m'
 ipsaya=$(wget -qO- ifconfig.me)
-data_server=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
-date_list=$(date +"%Y-%m-%d" -d "$data_server")
-data_ip="https://raw.githubusercontent.com/Pujianto1219/ip/main/ip"
 
+# ---------------------------------------------------------
+# CEK LISENSI SCRIPT
+# ---------------------------------------------------------
 checking_sc() {
+    data_server=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
+    date_list=$(date +"%Y-%m-%d" -d "$data_server")
+    data_ip="https://raw.githubusercontent.com/Pujianto1219/ip/main/ip"
     useexp=$(curl -sS $data_ip | grep $ipsaya | awk '{print $3}')
+    
     if [[ "$date_list" < "$useexp" ]]; then
         echo -ne
     else
-        echo -e "$COLOR1┌─────────────────────────────────────────────────┐${NC}"
-        echo -e "$COLOR1 ${NC} ${COLBG1}          ${WH}• AUTOSCRIPT PREMIUM •               ${NC} $COLOR1 $NC"
-        echo -e "$COLOR1└─────────────────────────────────────────────────┘${NC}"
-        echo -e "$COLOR1┌─────────────────────────────────────────────────┐${NC}"
-        echo -e "            ${RED}PERMISSION DENIED !${NC}"
-        echo -e "   \033[0;33mYour VPS${NC} $ipsaya \033[0;33mHas been Banned${NC}"
-        echo -e "     \033[0;33mBuy access permissions for scripts${NC}"
-        echo -e "             \033[0;33mContact Admin :${NC}"
-        echo -e "     \033[0;36mTelegram${NC}: t.me/AimanVpnExpress"
-        echo -e "$COLOR1└─────────────────────────────────────────────────┘${NC}"
-        exit
+        exit 1
     fi
 }
 checking_sc
 
 rm -rf /tmp/ssh
 clear
+
+# Bersihkan bash zombie jika lebih dari 20
 bash2=$( pgrep bash | wc -l )
 if [[ $bash2 -gt "20" ]]; then
     killall bash
@@ -47,6 +43,9 @@ DATE=$(date +'%Y-%m-%d')
 TIME=$(date +'%H:%M:%S')
 ISP=$(cat /etc/xray/isp 2>/dev/null)
 CITY=$(cat /etc/xray/city 2>/dev/null)
+
+# Variabel Flagging untuk mencegah Restart Loop
+RESTART_SSH=0
 
 # ---------------------------------------------------------
 # MENGAMBIL KONFIGURASI SISTEM
@@ -67,7 +66,7 @@ fi
 # MEMBACA LOG SSH & DROPBEAR
 # ---------------------------------------------------------
 cat /etc/passwd | grep "/home/" | cut -d":" -f1 > /etc/user.txt
-username1=( `cat "/etc/user.txt" `)
+username1=( $(cat "/etc/user.txt") )
 i="0"
 for user in "${username1[@]}"; do
     username[$i]=$(echo $user | sed "s/'//g")
@@ -120,7 +119,6 @@ done
 # ---------------------------------------------------------
 # PROSES TINDAKAN MULTI LOGIN
 # ---------------------------------------------------------
-j="0"
 for i in ${!username[*]}; do
     limitip=$(cat /etc/xray/sshx/${username[$i]}IP 2>/dev/null)
     if [[ -z "$limitip" ]]; then limitip="0"; fi
@@ -142,7 +140,7 @@ for i in ${!username[*]}; do
         if [ "$sship" -lt "$notif_limit" ]; then
             TEXT="
 🧿───────────────────🧿            
-           ⚠️ PERINGATAN MULTI LOGIN ⚠️
+            ⚠️ PERINGATAN MULTI LOGIN ⚠️
 🔹 Informasi Pelanggaran
 ┌─────────────────────
 │Username   : <code>${username[$i]}</code>
@@ -167,7 +165,6 @@ for i in ${!username[*]}; do
             if [ "$type" == "lock" ]; then
                 passwd -l ${username[$i]} >/dev/null 2>&1
                 
-                # Buat Cronjob untuk auto-unlock dan self-delete
                 M=$(date -d "$waktulock minutes" +%M)
                 H=$(date -d "$waktulock minutes" +%H)
                 echo "$M $H * * * root passwd -u ${username[$i]} && rm -f /etc/cron.d/ssh_${username[$i]}" > /etc/cron.d/ssh_${username[$i]}
@@ -230,23 +227,24 @@ for i in ${!username[*]}; do
 "
             curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT_SANKSI&parse_mode=html" $URL >/dev/null
             
-            # Reset Log Peringatan agar hitungan kembali dari nol (Untuk Bertingkat)
             rm -rf /etc/xray/sshx/${username[$i]}login
 
-            # Force Restart Dropbear & Tunnel untuk menendang koneksi
-            systemctl restart ws-stunnel > /dev/null 2>&1
-            systemctl restart dropbear > /dev/null 2>&1
+            # SET FLAG KE 1 (Tandai bahwa ada user yang ditendang/dikunci)
+            RESTART_SSH=1
         fi
-        j=$((j+1))
     fi
 done
 
-# Restart SSHD Service Jika ada yang ditendang
-if [ $j -gt 0 ]; then
+# ---------------------------------------------------------
+# RESTART SERVICE HANYA JIKA ADA PELANGGARAN (FLAG = 1)
+# ---------------------------------------------------------
+if [ "$RESTART_SSH" -eq 1 ]; then
+    systemctl restart ws-stunnel > /dev/null 2>&1
+    systemctl restart dropbear > /dev/null 2>&1
+    
     if [ $OS -eq 1 ]; then
-        service ssh restart > /dev/null 2>&1;
-    fi
-    if [ $OS -eq 2 ]; then
-        service sshd restart > /dev/null 2>&1;
+        service ssh restart > /dev/null 2>&1
+    elif [ $OS -eq 2 ]; then
+        service sshd restart > /dev/null 2>&1
     fi
 fi
