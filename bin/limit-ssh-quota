@@ -1,0 +1,95 @@
+#!/bin/bash
+# ==========================================
+# Auto Limit Quota SSH / Dropbear
+# ==========================================
+colornow=$(cat /etc/rmbl/theme/color.conf 2>/dev/null || echo "cyan")
+NC="\e[0m"
+COLOR1="$(cat /etc/rmbl/theme/$colornow 2>/dev/null | grep -w "TEXT" | cut -d: -f2|sed 's/ //g')"
+
+TIMES="10"
+CHATID=$(cat /etc/perlogin/id 2>/dev/null)
+KEY=$(cat /etc/perlogin/token 2>/dev/null)
+URL="https://api.telegram.org/bot$KEY/sendMessage"
+domen=$(cat /etc/xray/domain 2>/dev/null)
+
+# Batalkan eksekusi jika folder akun SSH tidak ada
+if [ ! -d /etc/xray/sshx ]; then
+    exit 0
+fi
+
+# Looping semua user yang memiliki file Quota
+for quota_file in /etc/xray/sshx/*Quota; do
+    # Jika file tidak ada (glob gagal), lompati
+    [ -e "$quota_file" ] || continue
+    
+    user=$(basename "$quota_file" Quota)
+    quota_bytes=$(cat "$quota_file")
+    
+    # Abaikan jika quota 0 atau Unlimited (9999 GB)
+    if [ "$quota_bytes" == "0" ] || [ -z "$quota_bytes" ] || [ "$quota_bytes" == "999999999999" ]; then
+        continue
+    fi
+
+    # Dapatkan UID (User ID) dari sistem Linux
+    uid=$(id -u $user 2>/dev/null)
+    if [ -z "$uid" ]; then
+        # Jika user sudah tidak ada di server, bersihkan file Quota-nya
+        rm -f "$quota_file"
+        continue
+    fi
+
+    # Cek apakah rule iptables untuk menghitung traffic UID ini sudah dibuat
+    rule_check=$(iptables -L OUTPUT -v -n -x | grep "owner UID match $uid")
+    if [ -z "$rule_check" ]; then
+        # Jika belum ada, buat rule iptables baru
+        iptables -I OUTPUT -m owner --uid-owner $uid -j ACCEPT
+        continue
+    fi
+
+    # Ambil angka total pemakaian (kolom ke-2 dari output iptables adalah total Bytes)
+    usage_bytes=$(iptables -L OUTPUT -v -n -x | grep "owner UID match $uid" | awk '{print $2}' | head -n 1)
+    
+    # Simpan usage untuk keperluan cek status di menu (opsional)
+    echo "$usage_bytes" > /etc/xray/sshx/${user}Usage
+
+    # ---------------------------------------------------------
+    # EKSEKUSI JIKA KUOTA HABIS
+    # ---------------------------------------------------------
+    if [ "$usage_bytes" -ge "$quota_bytes" ]; then
+        
+        # 1. Kunci Akun SSH
+        passwd -l $user >/dev/null 2>&1
+        
+        # 2. Tendang paksa sesi SSH/Dropbear yang sedang berlangsung
+        pkill -u $user >/dev/null 2>&1
+        
+        # 3. Konversi Bytes ke GB untuk mempercantik tampilan Telegram
+        quota_gb=$(awk "BEGIN {printf \"%.2f\", $quota_bytes/1073741824}")
+        usage_gb=$(awk "BEGIN {printf \"%.2f\", $usage_bytes/1073741824}")
+        
+        # 4. Kirim Notifikasi Telegram
+        TEXT="
+🧿───────────────────🧿            
+           🚨 QUOTA SSH HABIS 🚨
+🔹 Akses Akun Telah Diputus
+┌─────────────────────
+│Username   : <code>$user</code>
+│Domain     : <code>$domen</code>
+│Limit Quota: $quota_gb GB
+│Total Usage: $usage_gb GB
+│Tindakan   : <b>DIKUNCI (LOCKED)</b>
+└─────────────────────
+🧿───────────────────🧿
+♨ Sistem memutus akses akun tersebut ♨
+"
+        curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
+        
+        # 5. Hapus rule iptables agar CPU tidak berat
+        iptables -D OUTPUT -m owner --uid-owner $uid -j ACCEPT
+        
+        # 6. Hapus file Quota agar user ini tidak terus-menerus discan
+        rm -f "$quota_file"
+        rm -f /etc/xray/sshx/${user}Usage
+        
+    fi
+done
