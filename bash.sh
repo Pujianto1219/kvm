@@ -579,6 +579,10 @@ echo -e "${BIBlue}│ ${BGCOLOR}          DOWNLOAD EXTRA MENU           ${NC}${B
 echo -e "${BIBlue}╰══════════════════════════════════════════╯${NC}"
 
 download_with_progress "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/update.sh" "update.sh" "Extra Menu & Tools"
+
+# Membersihkan format Windows (CRLF) menjadi Linux (LF)
+dos2unix update.sh >/dev/null 2>&1
+
 install_with_animation "update.sh" "Extra Menu System"
 clear
 
