@@ -378,6 +378,88 @@ chmod +x speedtest
 chmod +x xp
 cd
 
+# ==================================================
+# SETUP BACKEND LIMIT QUOTA SSH (Iptables Monitor)
+# ==================================================
+cat > /usr/local/bin/limit-ssh << 'EOF'
+#!/bin/bash
+# Backend Auto Limit Quota SSH
+# Berjalan 24/7 memantau traffic user
+
+# Membersihkan dan membuat ulang jalur pantauan di Firewall
+iptables -D OUTPUT -j QUOTA_SSH &>/dev/null
+iptables -F QUOTA_SSH &>/dev/null
+iptables -X QUOTA_SSH &>/dev/null
+iptables -N QUOTA_SSH
+iptables -I OUTPUT -j QUOTA_SSH
+
+while true; do
+    for quota_file in /etc/xray/sshx/*Quota; do
+        # Jika tidak ada file quota, lewati
+        [ -e "$quota_file" ] || continue
+        
+        # Ekstrak username dari nama file
+        username=$(basename "$quota_file" Quota)
+
+        # Cek apakah user masih ada di dalam VPS
+        if ! id "$username" &>/dev/null; then
+            continue
+        fi
+
+        uid=$(id -u "$username")
+        limit_bytes=$(cat "$quota_file")
+
+        # Masukkan user ke pantauan Iptables jika belum ada
+        if ! iptables -C QUOTA_SSH -m owner --uid-owner "$uid" -j ACCEPT &>/dev/null; then
+            iptables -A QUOTA_SSH -m owner --uid-owner "$uid" -j ACCEPT
+        fi
+
+        # Tarik data pemakaian (Bytes) saat ini
+        used_bytes=$(iptables -L QUOTA_SSH -v -n -x | grep "owner UID match $uid" | awk '{print $2}')
+        [ -z "$used_bytes" ] && used_bytes=0
+
+        # Kunci akun jika pemakaian melebihi limit (dan pastikan bukan Quota 0)
+        if [ "$limit_bytes" -gt 0 ] && [ "$used_bytes" -ge "$limit_bytes" ]; then
+            # Cek status akun, jika belum terkunci (L = Locked), maka eksekusi
+            status=$(passwd -S "$username" 2>/dev/null | awk '{print $2}')
+            if [[ "$status" != "L" && "$status" != "LK" ]]; then
+                usermod -L "$username" # Kunci password
+                killall -u "$username" &>/dev/null # Tendang dari sesi aktif
+                
+                # Catat ke log
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔒 $username Terkunci | Limit: $limit_bytes | Pakai: $used_bytes" >> /etc/xray/sshx/quota-lock.log
+            fi
+        fi
+    done
+    
+    # Jeda 60 detik sebelum mengecek ulang (mencegah CPU over-load)
+    sleep 60
+done
+EOF
+
+chmod +x /usr/local/bin/limit-ssh
+
+# Membuat Systemd Service untuk Limit Quota
+cat > /etc/systemd/system/limit-ssh.service << 'EOF'
+[Unit]
+Description=Backend Limit Quota SSH AcilShop
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/limit-ssh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now limit-ssh
+systemctl restart limit-ssh
+# ==================================================
+
 # Setup Cronjobs
 cat > /etc/cron.d/xp_otm << END
 SHELL=/bin/sh
