@@ -721,6 +721,29 @@ clear
 CEKIP
 Casper3
 
+# ==========================================
+# FIX ERROR BAD INTERPRETER (CRLF to LF)
+# ==========================================
+echo -e "${BIBlue}╭══════════════════════════════════════════╮${NC}"
+echo -e "${BIBlue}│ ${BGCOLOR}      MEMPERBAIKI FORMAT SCRIPT MENU      ${NC}${BIBlue} │${NC}"
+echo -e "${BIBlue}╰══════════════════════════════════════════╯${NC}"
+
+# Memperbaiki semua file menu dan awalan m- di /usr/bin/
+# Menggunakan sed agar tidak perlu install dos2unix lagi
+if [ -f "/usr/bin/menu" ]; then
+    sed -i -e 's/\r$//' /usr/bin/menu
+    chmod +x /usr/bin/menu
+fi
+
+# Memperbaiki semua script menu (m-sshovpn, m-bot, dll)
+find /usr/bin/ -name "m-*" -type f -exec sed -i -e 's/\r$//' {} +
+find /usr/bin/ -name "m-*" -type f -exec chmod +x {} +
+
+echo -e "\033[1;32m✓ Format menu berhasil diperbaiki!\033[0m"
+sleep 2
+clear
+# ==========================================
+
 # Setup profile
 cat> /root/.profile << END
 if [ "$BASH" ]; then
