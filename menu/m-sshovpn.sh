@@ -773,100 +773,145 @@ read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn
 }
 function cek(){
-TIMES="10"
-CHATID=$(cat /etc/per/id)
-KEY=$(cat /etc/per/token)
-URL="https://api.telegram.org/bot$KEY/sendMessage"
-ISP=$(cat /etc/xray/isp)
-CITY=$(cat /etc/xray/city)
-domain=$(cat /etc/xray/domain)
-author=$(cat /etc/profil)
-echo -e "$COLOR1╭═════════════════════════════════════════════════╮${NC}"
-echo -e "$COLOR1│${NC} ${COLBG1}             ${WH}• SSH ACTIVE USERS •              ${NC} $COLOR1│ $NC"
-echo -e "$COLOR1╰═════════════════════════════════════════════════╯${NC}"
-rm -rf /tmp/ssh2
-sleep 3
-if [ -e "/var/log/auth.log" ]; then
-LOG="/var/log/auth.log";
-fi
-cat /etc/passwd | grep "/home/" | cut -d":" -f1 > /etc/user.txt
-username1=( `cat "/etc/user.txt" `);
-i="0";
-for user in "${username1[@]}"
-do
-username[$i]=`echo $user | sed 's/'\''//g'`;
-jumlah[$i]=0;
-i=$i+1;
-done
-cat $LOG | grep -i dropbear | grep -i "Password auth succeeded" > /tmp/log-db.txt
-proc=( `ps aux | grep -i dropbear | awk '{print $2}'`);
-for PID in "${proc[@]}"
-do
-cat /tmp/log-db.txt | grep "dropbear\[$PID\]" > /tmp/log-db-pid.txt
-NUM=`cat /tmp/log-db-pid.txt | wc -l`;
-USER=`cat /tmp/log-db-pid.txt | awk '{print $10}' | sed 's/'\''//g'`;
-IP=`cat /tmp/log-db-pid.txt | awk '{print $12}'`;
-if [ $NUM -eq 1 ]; then
-TIME=$(date +'%H:%M:%S')
-echo "$USER $TIME : $IP" >>/tmp/ssh2
-i=0;
-for user1 in "${username[@]}"
-do
-if [ "$USER" == "$user1" ]; then
-jumlah[$i]=`expr ${jumlah[$i]} + 1`;
-pid[$i]="${pid[$i]} $PID"
-fi
-i=$i+1;
-done
-fi
-done
-cat $LOG | grep -i sshd | grep -i "Accepted password for" > /tmp/log-db.txt
-data=( `ps aux | grep "\[priv\]" | sort -k 72 | awk '{print $2}'`);
-for PID in "${data[@]}"
-do
-cat /tmp/log-db.txt | grep "sshd\[$PID\]" > /tmp/log-db-pid.txt;
-NUM=`cat /tmp/log-db-pid.txt | wc -l`;
-USER=`cat /tmp/log-db-pid.txt | awk '{print $9}'`;
-IP=`cat /tmp/log-db-pid.txt | awk '{print $11}'`;
-if [ $NUM -eq 1 ]; then
-TIME=$(date +'%H:%M:%S')
-echo "$USER $TIME : $IP" >>/tmp/ssh2
-i=0;
-for user1 in "${username[@]}"
-do
-if [ "$USER" == "$user1" ]; then
-jumlah[$i]=`expr ${jumlah[$i]} + 1`;
-pid[$i]="${pid[$i]} $PID"
-fi
-i=$i+1;
-done
-fi
-done
-j="0";
-for i in ${!username[*]}
-do
-limitip="0"
-if [[ ${jumlah[$i]} -gt $limitip ]]; then
-sship=$(cat /tmp/ssh2  | grep -w "${username[$i]}" | wc -l)
-echo -e "$COLOR1${NC} USERNAME : \033[0;33m${username[$i]}";
-echo -e "$COLOR1${NC} IP LOGIN : \033[0;33m$sship";
-echo -e ""
-fi
-done
-if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
-echo " "
-cat /etc/openvpn/server/openvpn-tcp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-tcp.txt
-cat /tmp/vpn-login-tcp.txt
-fi
-if [ -f "/etc/openvpn/server/openvpn-udp.log" ]; then
-echo " "
-cat /etc/openvpn/server/openvpn-udp.log | grep -w "^CLIENT_LIST" | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-udp.txt
-cat /tmp/vpn-login-udp.txt
-fi
-echo -e "$COLOR1╰═════════════════════════════════════════════════╯${NC}"
-echo ""
-read -n 1 -s -r -p "Press any key to back on menu"
-m-sshovpn
+    # Pastikan variabel warna didefinisikan jika belum ada di file utama
+    # COLOR1='\033[0;34m'
+    # NC='\033[0m'
+    
+    # Variabel Telegram
+    CHATID=$(cat /etc/per/id 2>/dev/null)
+    KEY=$(cat /etc/per/token 2>/dev/null)
+    URL="https://api.telegram.org/bot$KEY/sendMessage"
+    
+    # File temporary untuk pesan Telegram
+    MSG_FILE="/tmp/telegram_msg.txt"
+    
+    echo -e "$COLOR1╭═════════════════════════════════════════════════╮${NC}"
+    echo -e "$COLOR1│${NC}               • SSH ACTIVE USERS •              $COLOR1│ $NC"
+    echo -e "$COLOR1╰═════════════════════════════════════════════════╯${NC}"
+    
+    rm -rf /tmp/ssh2
+    touch /tmp/ssh2 # Buat file kosong agar grep tidak error
+    
+    # Header untuk pesan Telegram (menggunakan format HTML)
+    echo -e "📊 <b>LAPORAN USER AKTIF</b>\n⏱ Waktu: $(date +'%Y-%m-%d %H:%M:%S')\n━━━━━━━━━━━━━━━━━━━━" > $MSG_FILE
+
+    # Deteksi OS Log
+    if [ -e "/var/log/auth.log" ]; then
+        LOG="/var/log/auth.log"
+    elif [ -e "/var/log/secure" ]; then
+        LOG="/var/log/secure"
+    else
+        echo "Error: File log tidak ditemukan!"
+        echo "⚠️ Error: File log SSH tidak ditemukan di server." >> $MSG_FILE
+        return 1
+    fi
+
+    # Ambil list user dari sistem
+    mapfile -t username1 < <(grep "/home/" /etc/passwd | cut -d":" -f1)
+    
+    # -- CEK DROPBEAR --
+    grep -i "Password auth succeeded" "$LOG" > /tmp/log-db.txt
+    mapfile -t proc < <(ps aux | grep -i dropbear | awk '{print $2}')
+    
+    for PID in "${proc[@]}"; do
+        grep "dropbear\[$PID\]" /tmp/log-db.txt > /tmp/log-db-pid.txt
+        NUM=$(wc -l < /tmp/log-db-pid.txt)
+        if [ "$NUM" -eq 1 ]; then
+            USER=$(awk '{print $10}' /tmp/log-db-pid.txt | sed "s/'//g")
+            IP=$(awk '{print $12}' /tmp/log-db-pid.txt)
+            TIME=$(date +'%H:%M:%S')
+            echo "$USER $TIME : $IP" >> /tmp/ssh2
+        fi
+    done
+
+    # -- CEK OPENSSH --
+    grep -i "Accepted password for" "$LOG" > /tmp/log-db.txt
+    mapfile -t data < <(ps aux | grep "\[priv\]" | awk '{print $2}')
+    
+    for PID in "${data[@]}"; do
+        grep "sshd\[$PID\]" /tmp/log-db.txt > /tmp/log-db-pid.txt
+        NUM=$(wc -l < /tmp/log-db-pid.txt)
+        if [ "$NUM" -eq 1 ]; then
+            USER=$(awk '{print $9}' /tmp/log-db-pid.txt)
+            IP=$(awk '{print $11}' /tmp/log-db-pid.txt)
+            TIME=$(date +'%H:%M:%S')
+            echo "$USER $TIME : $IP" >> /tmp/ssh2
+        fi
+    done
+
+    # -- TAMPILKAN HASIL SSH & SIMPAN KE TELEGRAM --
+    echo -e "<b>[ SSH / Dropbear ]</b>" >> $MSG_FILE
+    limitip="0"
+    ssh_active=0
+    
+    for user in "${username1[@]}"; do
+        sship=$(grep -w "$user" /tmp/ssh2 | wc -l)
+        if [[ "$sship" -gt "$limitip" ]]; then
+            # Tampil di terminal
+            echo -e "$COLOR1${NC} USERNAME : \033[0;33m$user\033[0m"
+            echo -e "$COLOR1${NC} Sesi Login : \033[0;33m$sship\033[0m\n"
+            
+            # Masuk ke log Telegram
+            echo "👤 User: <code>$user</code> | Sesi: $sship" >> $MSG_FILE
+            ssh_active=1
+        fi
+    done
+
+    # Jika tidak ada yang login SSH
+    if [ "$ssh_active" -eq 0 ]; then
+        echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+    fi
+    echo "━━━━━━━━━━━━━━━━━━━━" >> $MSG_FILE
+
+    # -- TAMPILKAN HASIL OPENVPN & SIMPAN KE TELEGRAM --
+    if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
+        echo " "
+        echo -e "\033[0;33m[ OpenVPN TCP ]\033[0m"
+        grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-tcp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-tcp.txt
+        cat /tmp/vpn-login-tcp.txt
+        
+        echo -e "<b>[ OpenVPN TCP ]</b>" >> $MSG_FILE
+        # Cek apakah file kosong atau tidak
+        if [ -s /tmp/vpn-login-tcp.txt ]; then
+            cat /tmp/vpn-login-tcp.txt >> $MSG_FILE
+        else
+            echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+        fi
+    fi
+    
+    if [ -f "/etc/openvpn/server/openvpn-udp.log" ]; then
+        echo " "
+        echo -e "\033[0;33m[ OpenVPN UDP ]\033[0m"
+        grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-udp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-udp.txt
+        cat /tmp/vpn-login-udp.txt
+        
+        echo -e "\n<b>[ OpenVPN UDP ]</b>" >> $MSG_FILE
+        if [ -s /tmp/vpn-login-udp.txt ]; then
+            cat /tmp/vpn-login-udp.txt >> $MSG_FILE
+        else
+            echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+        fi
+    fi
+
+    echo -e "$COLOR1╰═════════════════════════════════════════════════╯${NC}"
+    
+    # ==========================================
+    # EKSEKUSI KIRIM KE TELEGRAM (SILENT MODE)
+    # ==========================================
+    if [[ -n "$CHATID" && -n "$KEY" ]]; then
+        # Menggunakan --data-urlencode agar karakter spasi dan baris baru (enter) terkirim sempurna
+        curl -s -X POST "$URL" \
+            -d chat_id="$CHATID" \
+            -d parse_mode="HTML" \
+            --data-urlencode text@$MSG_FILE > /dev/null 2>&1
+    fi
+    # ==========================================
+
+    echo ""
+    read -n 1 -s -r -p "Press any key to back on menu"
+    
+    # Kembali ke menu sebelumnya
+    m-sshovpn
 }
 function limitssh(){
 cd
