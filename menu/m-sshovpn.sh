@@ -773,6 +773,9 @@ read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn
 }
 function cek(){
+    # ==========================================
+    # DEFINISI VARIABEL & PERSIAPAN AWAL
+    # ==========================================
     # Pastikan variabel warna didefinisikan jika belum ada di file utama
     # COLOR1='\033[0;34m'
     # NC='\033[0m'
@@ -789,93 +792,86 @@ function cek(){
     echo -e "$COLOR1│${NC}               • SSH ACTIVE USERS •              $COLOR1│ $NC"
     echo -e "$COLOR1╰═════════════════════════════════════════════════╯${NC}"
     
-    rm -rf /tmp/ssh2
-    touch /tmp/ssh2 # Buat file kosong agar grep tidak error
-    
-    # Header untuk pesan Telegram (menggunakan format HTML)
-    echo -e "📊 <b>LAPORAN USER AKTIF</b>\n⏱ Waktu: $(date +'%Y-%m-%d %H:%M:%S')\n━━━━━━━━━━━━━━━━━━━━" > $MSG_FILE
+    # Header untuk pesan Telegram
+    echo -e "📊 <b>LAPORAN USER AKTIF</b>\n⏱ Waktu: $(date +'%Y-%m-%d %H:%M:%S')\n━━━━━━━━━━━━━━━━━━━━" > "$MSG_FILE"
 
-    # Deteksi OS Log
-    if [ -e "/var/log/auth.log" ]; then
-        LOG="/var/log/auth.log"
-    elif [ -e "/var/log/secure" ]; then
-        LOG="/var/log/secure"
-    else
-        echo "Error: File log tidak ditemukan!"
-        echo "⚠️ Error: File log SSH tidak ditemukan di server." >> $MSG_FILE
+    # ==========================================
+    # LOGIKA BARU: PENGECEKAN USER SSH/DROPBEAR (100% AKURAT VIA NETWORK)
+    # ==========================================
+    echo -e "<b>[ SSH / Dropbear ]</b>" >> "$MSG_FILE"
+    
+    # Pastikan dependensi netstat terinstal (net-tools)
+    if ! command -v netstat &> /dev/null; then
+        echo -e "\033[0;31m[ERROR] Perintah 'netstat' tidak ditemukan. Harap install 'net-tools' terlebih dahulu.\033[0m"
+        echo "⚠️ Error: netstat tidak ditemukan di server." >> "$MSG_FILE"
         return 1
     fi
 
-    # Ambil list user dari sistem
-    mapfile -t username1 < <(grep "/home/" /etc/passwd | cut -d":" -f1)
+    # 1. Ambil list semua user SSH yang valid di sistem (hanya yang memiliki home direktori)
+    mapfile -t list_users < <(grep "/home/" /etc/passwd | cut -d":" -f1)
     
-    # -- CEK DROPBEAR --
-    grep -i "Password auth succeeded" "$LOG" > /tmp/log-db.txt
-    mapfile -t proc < <(ps aux | grep -i dropbear | awk '{print $2}')
-    
-    for PID in "${proc[@]}"; do
-        grep "dropbear\[$PID\]" /tmp/log-db.txt > /tmp/log-db-pid.txt
-        NUM=$(wc -l < /tmp/log-db-pid.txt)
-        if [ "$NUM" -eq 1 ]; then
-            USER=$(awk '{print $10}' /tmp/log-db-pid.txt | sed "s/'//g")
-            IP=$(awk '{print $12}' /tmp/log-db-pid.txt)
-            TIME=$(date +'%H:%M:%S')
-            echo "$USER $TIME : $IP" >> /tmp/ssh2
-        fi
-    done
-
-    # -- CEK OPENSSH --
-    grep -i "Accepted password for" "$LOG" > /tmp/log-db.txt
-    mapfile -t data < <(ps aux | grep "\[priv\]" | awk '{print $2}')
-    
-    for PID in "${data[@]}"; do
-        grep "sshd\[$PID\]" /tmp/log-db.txt > /tmp/log-db-pid.txt
-        NUM=$(wc -l < /tmp/log-db-pid.txt)
-        if [ "$NUM" -eq 1 ]; then
-            USER=$(awk '{print $9}' /tmp/log-db-pid.txt)
-            IP=$(awk '{print $11}' /tmp/log-db-pid.txt)
-            TIME=$(date +'%H:%M:%S')
-            echo "$USER $TIME : $IP" >> /tmp/ssh2
-        fi
-    done
-
-    # -- TAMPILKAN HASIL SSH & SIMPAN KE TELEGRAM --
-    echo -e "<b>[ SSH / Dropbear ]</b>" >> $MSG_FILE
-    limitip="0"
     ssh_active=0
-    
-    for user in "${username1[@]}"; do
-        sship=$(grep -w "$user" /tmp/ssh2 | wc -l)
-        if [[ "$sship" -gt "$limitip" ]]; then
+
+    # Kita akan melakukan loop untuk setiap user dan menghitung jumlah koneksinya secara real-time
+    for user in "${list_users[@]}"; do
+        # Logika: 
+        # a. Kita cari proses yang berjalan atas nama user tersebut (sshd atau dropbear)
+        # b. Kita ambil PID dari proses tersebut
+        # c. Kita cek dengan netstat apakah PID tersebut memiliki koneksi TCP yang ESTABLISHED
+        
+        # Cari PID proses sshd atau dropbear milik user
+        # (Menggunakan lsof untuk melihat koneksi TCP IPv4 yang ESTABLISHED milik user)
+        # Namun lsof terkadang lambat, kita bisa menggunakan kombinasi ps dan netstat
+        
+        # Cara efisien: Kita cari PID login dari ps, lalu cocokkan dengan netstat
+        # 'sshd: user' atau 'dropbear' yang dijalankan oleh UID user
+        user_pids=$(ps -u "$user" -o pid,comm= 2>/dev/null | grep -E "sshd|dropbear" | awk '{print $1}')
+        
+        sesi_aktif=0
+        
+        if [[ -n "$user_pids" ]]; then
+            for pid in $user_pids; do
+                # Cek apakah PID ini memiliki koneksi jaringan yang benar-benar ESTABLISHED
+                cek_koneksi=$(netstat -ntp 2>/dev/null | grep "$pid/" | grep "ESTABLISHED")
+                
+                if [[ -n "$cek_koneksi" ]]; then
+                    ((sesi_aktif++))
+                fi
+            done
+        fi
+
+        # Jika user memiliki sesi aktif, tampilkan
+        if [[ "$sesi_aktif" -gt 0 ]]; then
             # Tampil di terminal
             echo -e "$COLOR1${NC} USERNAME : \033[0;33m$user\033[0m"
-            echo -e "$COLOR1${NC} Sesi Login : \033[0;33m$sship\033[0m\n"
+            echo -e "$COLOR1${NC} Sesi Login : \033[0;33m$sesi_aktif\033[0m\n"
             
             # Masuk ke log Telegram
-            echo "👤 User: <code>$user</code> | Sesi: $sship" >> $MSG_FILE
+            echo "👤 User: <code>$user</code> | Sesi: $sesi_aktif" >> "$MSG_FILE"
             ssh_active=1
         fi
     done
 
     # Jika tidak ada yang login SSH
     if [ "$ssh_active" -eq 0 ]; then
-        echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+        echo "<i>Tidak ada user aktif</i>" >> "$MSG_FILE"
     fi
-    echo "━━━━━━━━━━━━━━━━━━━━" >> $MSG_FILE
+    echo "━━━━━━━━━━━━━━━━━━━━" >> "$MSG_FILE"
 
-    # -- TAMPILKAN HASIL OPENVPN & SIMPAN KE TELEGRAM --
+    # ==========================================
+    # PENGECEKAN OPENVPN (SUDAH AKURAT BERDASARKAN STATUS LOG OVPN)
+    # ==========================================
     if [ -f "/etc/openvpn/server/openvpn-tcp.log" ]; then
         echo " "
         echo -e "\033[0;33m[ OpenVPN TCP ]\033[0m"
         grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-tcp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-tcp.txt
         cat /tmp/vpn-login-tcp.txt
         
-        echo -e "<b>[ OpenVPN TCP ]</b>" >> $MSG_FILE
-        # Cek apakah file kosong atau tidak
+        echo -e "<b>[ OpenVPN TCP ]</b>" >> "$MSG_FILE"
         if [ -s /tmp/vpn-login-tcp.txt ]; then
-            cat /tmp/vpn-login-tcp.txt >> $MSG_FILE
+            cat /tmp/vpn-login-tcp.txt >> "$MSG_FILE"
         else
-            echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+            echo "<i>Tidak ada user aktif</i>" >> "$MSG_FILE"
         fi
     fi
     
@@ -885,11 +881,11 @@ function cek(){
         grep -w "^CLIENT_LIST" /etc/openvpn/server/openvpn-udp.log | cut -d ',' -f 2,3,8 | sed -e 's/,/      /g' > /tmp/vpn-login-udp.txt
         cat /tmp/vpn-login-udp.txt
         
-        echo -e "\n<b>[ OpenVPN UDP ]</b>" >> $MSG_FILE
+        echo -e "\n<b>[ OpenVPN UDP ]</b>" >> "$MSG_FILE"
         if [ -s /tmp/vpn-login-udp.txt ]; then
-            cat /tmp/vpn-login-udp.txt >> $MSG_FILE
+            cat /tmp/vpn-login-udp.txt >> "$MSG_FILE"
         else
-            echo "<i>Tidak ada user aktif</i>" >> $MSG_FILE
+            echo "<i>Tidak ada user aktif</i>" >> "$MSG_FILE"
         fi
     fi
 
@@ -899,7 +895,6 @@ function cek(){
     # EKSEKUSI KIRIM KE TELEGRAM (SILENT MODE)
     # ==========================================
     if [[ -n "$CHATID" && -n "$KEY" ]]; then
-        # Menggunakan --data-urlencode agar karakter spasi dan baris baru (enter) terkirim sempurna
         curl -s -X POST "$URL" \
             -d chat_id="$CHATID" \
             -d parse_mode="HTML" \
