@@ -1531,18 +1531,18 @@ m-sshovpn
 }
 clear
 author=$(cat /etc/profil)
-echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
-echo -e "$COLOR1│${NC}             ${WH}• SSH PANEL MENU •${NC}            $COLOR1│${NC}"
-echo -e "$COLOR1├─────────────────────┬─────────────────────┤${NC}"
-echo -e "$COLOR1│${NC} ${WH}[01] CREATE ACCOUNT${NC} $COLOR1│${NC} ${WH}[06] CEK CONFIG${NC}     $COLOR1│${NC}"
-echo -e "$COLOR1│${NC} ${WH}[02] TRIAL ACCOUNT${NC}  $COLOR1│${NC} ${WH}[07] CHANGE IP LIMIT${NC}$COLOR1│${NC}"
-echo -e "$COLOR1│${NC} ${WH}[03] RENEW ACCOUNT${NC}  $COLOR1│${NC} ${WH}[08] SETUP LOGIN${NC}    $COLOR1│${NC}"
-echo -e "$COLOR1│${NC} ${WH}[04] DELETE ACCOUNT${NC} $COLOR1│${NC} ${WH}[09] UNLOCK SSH${NC}     $COLOR1│${NC}"
-echo -e "$COLOR1│${NC} ${WH}[05] CEK ONLINE${NC}     $COLOR1│${NC} ${WH}[10] KICK MULTILOGIN${NC}$COLOR1│${NC}"
-echo -e "$COLOR1├─────────────────────┴─────────────────────┤${NC}"
-echo -e "$COLOR1│${NC} ${WH}[00] GO BACK / EXIT MENU${NC}                  $COLOR1│${NC}"
-echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
-echo -e "             ${WH}• $author •${NC}              "
+echo -e " $COLOR1╭────────────────────────────────────────────────────╮${NC}"
+echo -e " $COLOR1│${NC}                 ${WH}• SSH PANEL MENU •${NC}                 $COLOR1│ $NC"
+echo -e " $COLOR1├─────────────────────────┬──────────────────────────┤${NC}"
+echo -e " $COLOR1│ $NC ${WH}[01] CREATE ACCOUNT${NC}    $COLOR1│ $NC ${WH}[06] CEK CONFIG USER${NC}   $COLOR1│ $NC"
+echo -e " $COLOR1│ $NC ${WH}[02] TRIAL ACCOUNT${NC}     $COLOR1│ $NC ${WH}[07] CHANGE IP LIMIT${NC}   $COLOR1│ $NC"
+echo -e " $COLOR1│ $NC ${WH}[03] RENEW ACCOUNT${NC}     $COLOR1│ $NC ${WH}[08] SETUP LOGIN${NC}       $COLOR1│ $NC"
+echo -e " $COLOR1│ $NC ${WH}[04] DELETE ACCOUNT${NC}    $COLOR1│ $NC ${WH}[09] UNLOCK SSH LOGIN${NC}  $COLOR1│ $NC"
+echo -e " $COLOR1│ $NC ${WH}[05] CEK USER ONLINE${NC}   $COLOR1│ $NC ${WH}[10] AUTO LIMIT SSH${NC}    $COLOR1│ $NC"
+echo -e " $COLOR1├─────────────────────────┴──────────────────────────┤${NC}"
+echo -e " $COLOR1│ $NC ${WH}[00] GO BACK / EXIT MENU${NC}                           $COLOR1│$NC"
+echo -e " $COLOR1╰────────────────────────────────────────────────────╯${NC}"
+echo -e "                      ${WH}• $author •${NC}                 "
 echo -e ""
 echo -ne " ${WH}Select menu ${COLOR1}: ${WH}"; read opt
 
@@ -1553,10 +1553,10 @@ case $opt in
     04 | 4) clear ; hapus ; exit ;;
     05 | 5) clear ; cek ; exit ;;
     06 | 6) clear ; cekconfig ; exit ;;
-    07 | 7) clear ; limitssh ; exit ;;
+    07 | 7) clear ; limitssh; exit ;;
     08 | 8) clear ; listssh ; exit ;;
     09 | 9) clear ; lockssh ; exit ;;
-    10 | 10) clear ; toggle_autokick ; exit ;;
+    10 | 10) clear ; toggle_autokick_ssh ; exit ;;
     00 | 0) clear ; menu ; exit ;;
     X  | 0) clear ; m-sshovpn ;;
     x) exit ;;
