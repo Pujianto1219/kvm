@@ -999,6 +999,97 @@ read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn
 }
 clear
+function toggle_autokick() {
+clear
+# Membuat file script daemon dan service jika belum ada di VPS
+if [ ! -f "/etc/systemd/system/autokick.service" ]; then
+    # 1. Buat script latar belakang
+    cat > /usr/local/bin/autokick_daemon << 'EOF'
+#!/bin/bash
+while true; do
+    mapfile -t users < <(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd)
+    for user in "${users[@]}"; do
+        if [ -f "/etc/xray/sshx/${user}IP" ]; then
+            limit=$(cat "/etc/xray/sshx/${user}IP")
+            # Cek jika limit bukan 0 (unlimited)
+            if [[ "$limit" -gt 0 ]] && [[ "$limit" -ne 9999 ]]; then
+                login_ssh=$(ps aux | grep -w "sshd" | grep -w "$user" | grep -v root | wc -l)
+                login_db=$(ps aux | grep -w "dropbear" | grep -w "$user" | grep -v root | wc -l)
+                total_login=$((login_ssh + login_db))
+                
+                if [[ "$total_login" -gt "$limit" ]]; then
+                    pkill -u "$user" sshd
+                    pkill -u "$user" dropbear
+                fi
+            fi
+        fi
+    done
+    sleep 15
+done
+EOF
+    chmod +x /usr/local/bin/autokick_daemon
+
+    # 2. Buat file systemd service
+    cat > /etc/systemd/system/autokick.service << 'EOF'
+[Unit]
+Description=Auto Kick MultiLogin SSH
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/autokick_daemon
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+fi
+
+# Cek Status Service Aktif atau Tidak
+if systemctl is-active --quiet autokick; then
+    status_service="\033[0;32mON / RUNNING\033[0m "
+else
+    status_service="\033[0;31mOFF / STOPPED\033[0m"
+fi
+
+# Tampilan Menu Control
+echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
+echo -e "$COLOR1│${NC}         ${WH}• AUTO KICK MULTILOGIN •${NC}          $COLOR1│${NC}"
+echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} Status Sistem : $status_service            "
+echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[1] Turn ON Auto Kick${NC}                     $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[2] Turn OFF Auto Kick${NC}                    $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[0] Back to Menu${NC}                          $COLOR1│${NC}"
+echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
+read -p " Select Option : " opt
+
+case $opt in
+    1)
+        systemctl enable --now autokick &> /dev/null
+        echo -e " Auto Kick berhasil diaktifkan."
+        sleep 1
+        toggle_autokick
+        ;;
+    2)
+        systemctl disable --now autokick &> /dev/null
+        echo -e " Auto Kick berhasil dimatikan."
+        sleep 1
+        toggle_autokick
+        ;;
+    0)
+        menu
+        ;;
+    *)
+        echo -e " Pilihan tidak valid!"
+        sleep 1
+        toggle_autokick
+        ;;
+esac
+}
+
 function listssh(){
     clear
     
@@ -1283,35 +1374,34 @@ m-sshovpn
 }
 clear
 author=$(cat /etc/profil)
-echo -e " $COLOR1╭════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│${NC}                ${WH}• SSH PANEL MENU •                ${NC} $COLOR1│ $NC"
-echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
-echo -e " "
-echo -e " $COLOR1╭══════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│ $NC  ${COLOR1}[${WH}01${COLOR1}]${NC} ${COLOR1}• ${WH}CREATE ACCOUNT${NC}   ${COLOR1}[${WH}05${COLOR1}]${NC} ${COLOR1}• ${WH}CEK USER ONLINE${NC}    $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC  ${COLOR1}[${WH}02${COLOR1}]${NC} ${COLOR1}• ${WH}TRIAL ACCOUNT${NC}    ${COLOR1}[${WH}06${COLOR1}]${NC} ${COLOR1}• ${WH}CEK ACCOUNT CONFIG${NC} $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC  ${COLOR1}[${WH}03${COLOR1}]${NC} ${COLOR1}• ${WH}RENEW ACCOUNT${NC}    ${COLOR1}[${WH}07${COLOR1}]${NC} ${COLOR1}• ${WH}CHANGE IP LIMIT${NC}    $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC  ${COLOR1}[${WH}04${COLOR1}]${NC} ${COLOR1}• ${WH}DELETE ACCOUNT${NC}   ${COLOR1}[${WH}08${COLOR1}]${NC} ${COLOR1}• ${WH}SETTING SSH LOGIN${NC}     $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC  ${COLOR1}[${WH}00${COLOR1}]${NC} ${COLOR1}• ${WH}GO BACK${NC}          ${COLOR1}[${WH}09${COLOR1}]${NC} ${COLOR1}• ${WH}UNLOCK SSH LOGIN${NC}  $COLOR1 │$NC"
-echo -e " $COLOR1╰══════════════════════════════════════════════════════╯${NC}"
-echo -e " "
-echo -e " $COLOR1╭═════════════════════════ ${WH}BY${NC} ${COLOR1}═══════════════════════╮ ${NC}"
-echo -e "  $COLOR1${NC}              ${WH}   • $author •                 $COLOR1 $NC"
-echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
+echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
+echo -e "$COLOR1│${NC}             ${WH}• SSH PANEL MENU •${NC}            $COLOR1│${NC}"
+echo -e "$COLOR1├─────────────────────┬─────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[01] CREATE ACCOUNT${NC} $COLOR1│${NC} ${WH}[06] CEK CONFIG${NC}     $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[02] TRIAL ACCOUNT${NC}  $COLOR1│${NC} ${WH}[07] CHANGE IP LIMIT${NC}$COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[03] RENEW ACCOUNT${NC}  $COLOR1│${NC} ${WH}[08] SETUP LOGIN${NC}    $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[04] DELETE ACCOUNT${NC} $COLOR1│${NC} ${WH}[09] UNLOCK SSH${NC}     $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[05] CEK ONLINE${NC}     $COLOR1│${NC} ${WH}[10] KICK MULTILOGIN${NC}$COLOR1│${NC}"
+echo -e "$COLOR1├─────────────────────┴─────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[00] GO BACK / EXIT MENU${NC}                  $COLOR1│${NC}"
+echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
+echo -e "             ${WH}• $author •${NC}              "
 echo -e ""
-echo -ne " ${WH} Select menu ${COLOR1}: ${WH}"; read opt
+echo -ne " ${WH}Select menu ${COLOR1}: ${WH}"; read opt
+
 case $opt in
-01 | 1) clear ; usernew ; exit ;;
-02 | 2) clear ; trial ; exit ;;
-03 | 3) clear ; renew ; exit ;;
-04 | 4) clear ; hapus ; exit ;;
-05 | 5) clear ; cek ; exit ;;
-06 | 6) clear ; cekconfig ; exit ;;
-07 | 7) clear ; limitssh; exit ;;
-08 | 8) clear ; listssh ; exit ;;
-09 | 9) clear ; lockssh ; exit ;;
-00 | 0) clear ; menu ; exit ;;
-X  | 0) clear ; m-sshovpn ;;
-x) exit ;;
-*) echo "Anda salah tekan " ; sleep 1 ; m-sshovpn ;;
+    01 | 1) clear ; usernew ; exit ;;
+    02 | 2) clear ; trial ; exit ;;
+    03 | 3) clear ; renew ; exit ;;
+    04 | 4) clear ; hapus ; exit ;;
+    05 | 5) clear ; cek ; exit ;;
+    06 | 6) clear ; cekconfig ; exit ;;
+    07 | 7) clear ; limitssh ; exit ;;
+    08 | 8) clear ; listssh ; exit ;;
+    09 | 9) clear ; lockssh ; exit ;;
+    10 | 10) clear ; toggle_autokick ; exit ;;
+    00 | 0) clear ; menu ; exit ;;
+    X  | 0) clear ; m-sshovpn ;;
+    x) exit ;;
+    *) echo "Anda salah tekan" ; sleep 1 ; m-sshovpn ;;
 esac
