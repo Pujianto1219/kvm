@@ -999,45 +999,203 @@ read -n 1 -s -r -p "Press any key to back on menu"
 m-sshovpn
 }
 clear
-function toggle_autokick() {
+function toggle_autokick_ssh() {
 clear
-# Membuat file script daemon dan service jika belum ada di VPS
-if [ ! -f "/etc/systemd/system/autokick.service" ]; then
-    # 1. Buat script latar belakang
-    cat > /usr/local/bin/autokick_daemon << 'EOF'
+
+# Membuat file script daemon dan service jika belum ada
+if [ ! -f "/etc/systemd/system/autokick-ssh.service" ]; then
+    # 1. Buat script latar belakang dari kode asli pengguna
+    cat > /usr/local/bin/autokick_ssh_daemon << 'EOF'
 #!/bin/bash
+
+# Konfigurasi Dasar
+LOG="/var/log/auth.log"
+[ -e "/var/log/secure" ] && LOG="/var/log/secure"
+DIR_CONF="/etc/xray/sshx"
+mkdir -p $DIR_CONF
+
 while true; do
+    DATE=$(date +'%Y-%m-%d')
+    TIME=$(date +'%H:%M:%S')
+    CHATID=$(cat /etc/perlogin/id 2>/dev/null)
+    KEY=$(cat /etc/perlogin/token 2>/dev/null)
+    URL="https://api.telegram.org/bot$KEY/sendMessage"
+    domen=$(cat /etc/xray/domain 2>/dev/null)
+    ISP=$(cat /etc/xray/isp 2>/dev/null)
+    CITY=$(cat /etc/xray/city 2>/dev/null)
+    TIMES="10"
+
+    type=$(cat /etc/typessh 2>/dev/null || echo "delete")
+    waktulock=$(cat /etc/waktulockssh 2>/dev/null || echo "15")
+    limit_notif=$(cat ${DIR_CONF}/notif 2>/dev/null || echo "3")
+    sp1_dur=$(cat ${DIR_CONF}/sp1 2>/dev/null || echo "15")
+    sp2_dur=$(cat ${DIR_CONF}/sp2 2>/dev/null || echo "30")
+
+    # Ambil daftar user SSH lokal
     mapfile -t users < <(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd)
-    for user in "${users[@]}"; do
-        if [ -f "/etc/xray/sshx/${user}IP" ]; then
-            limit=$(cat "/etc/xray/sshx/${user}IP")
-            # Cek jika limit bukan 0 (unlimited)
-            if [[ "$limit" -gt 0 ]] && [[ "$limit" -ne 9999 ]]; then
-                login_ssh=$(ps aux | grep -w "sshd" | grep -w "$user" | grep -v root | wc -l)
-                login_db=$(ps aux | grep -w "dropbear" | grep -w "$user" | grep -v root | wc -l)
-                total_login=$((login_ssh + login_db))
+    
+    echo -n > /tmp/ssh_active_log
+
+    # --- PARSING DROPBEAR ---
+    grep -i dropbear "$LOG" | grep -i "Password auth succeeded" > /tmp/log-db.txt
+    mapfile -t proc_db < <(ps aux | grep -i dropbear | awk '{print $2}')
+    for PID in "${proc_db[@]}"; do
+        grep "dropbear\[$PID\]" /tmp/log-db.txt > /tmp/log-db-pid.txt
+        if [ $(wc -l < /tmp/log-db-pid.txt) -eq 1 ]; then
+            USER=$(awk '{print $10}' /tmp/log-db-pid.txt | sed "s/'//g")
+            IP=$(awk '{print $12}' /tmp/log-db-pid.txt)
+            echo "$USER : $IP" >> /tmp/ssh_active_log
+        fi
+    done
+
+    # --- PARSING OPENSSH ---
+    grep -i sshd "$LOG" | grep -i "Accepted password for" > /tmp/log-sshd.txt
+    mapfile -t proc_sshd < <(ps aux | grep "\[priv\]" | awk '{print $2}')
+    for PID in "${proc_sshd[@]}"; do
+        grep "sshd\[$PID\]" /tmp/log-sshd.txt > /tmp/log-sshd-pid.txt
+        if [ $(wc -l < /tmp/log-sshd-pid.txt) -eq 1 ]; then
+            USER=$(awk '{print $9}' /tmp/log-sshd-pid.txt)
+            IP=$(awk '{print $11}' /tmp/log-sshd-pid.txt)
+            echo "$USER : $IP" >> /tmp/ssh_active_log
+        fi
+    done
+
+    # --- EVALUASI PELANGGARAN ---
+    for usr in "${users[@]}"; do
+        limitip=$(cat ${DIR_CONF}/${usr}IP 2>/dev/null || echo "0")
+        
+        # Skip jika limit 0 atau 9999 (Unlimited)
+        if [[ "$limitip" -eq 0 ]] || [[ "$limitip" -eq 9999 ]]; then
+            continue
+        fi
+
+        login_count=$(grep -w "^${usr}" /tmp/ssh_active_log | wc -l)
+        
+        if [[ ${login_count} -gt ${limitip} ]]; then
+            echo "$DATE $TIME - ${usr} - ${login_count}" >> ${DIR_CONF}/${usr}login
+            pelanggaran_ke=$(wc -l < ${DIR_CONF}/${usr}login)
+            ip_list=$(grep -w "^${usr}" /tmp/ssh_active_log | cut -d ' ' -f 3 | sort -u | nl -s '. ')
+
+            # Hapus log asli agar peringatan tidak berulang tanpa jeda
+            sed -i "/${usr}/d" "$LOG"
+
+            # A. KONDISI PERINGATAN
+            if [ "$pelanggaran_ke" -lt "$limit_notif" ]; then
+                TEXT="
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b> ⚠️ SSH NOTIF MULTI LOGIN</b>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b>DOMAIN   :</b> <code>${domen}</code>
+<b>ISP      :</b> <code>${ISP} ${CITY}</code>
+<b>USERNAME :</b> <code>${usr}</code>
+<b>LIMIT IP :</b> <code>${limitip} IP</code>
+<b>LOGIN IP :</b> <code>${login_count} IP</code>
+<b>WARNING  :</b> <code>ke-${pelanggaran_ke} dari ${limit_notif}</code>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b>DAFTAR IP TERPANTAU :</b>
+<code>$ip_list</code>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<i>Peringatan! Tolong patuhi rules...</i>"
+                curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
                 
-                if [[ "$total_login" -gt "$limit" ]]; then
-                    pkill -u "$user" sshd
-                    pkill -u "$user" dropbear
+                # Hanya putuskan koneksi (kick) tanpa lock/delete
+                pkill -u "$usr" sshd
+                pkill -u "$usr" dropbear
+
+            # B. KONDISI EKSEKUSI SANKSI FATAL
+            elif [ "$pelanggaran_ke" -ge "$limit_notif" ]; then
+                exp=$(grep -wE "^### $usr" "/etc/xray/ssh" | cut -d ' ' -f 3 | sort | uniq)
+                pass=$(grep -wE "^### $usr" "/etc/xray/ssh" | cut -d ' ' -f 4 | sort | uniq)
+                
+                # Eksekusi Kick Proses
+                pkill -u "$usr" sshd
+                pkill -u "$usr" dropbear
+                
+                # Reset pelanggaran
+                rm -rf ${DIR_CONF}/${usr}login
+
+                # --- MODE LOCK ---
+                if [ "$type" == "lock" ]; then
+                    echo "### $usr $exp $pass" >> ${DIR_CONF}/listlock
+                    sed -i "/^### $usr $exp $pass/d" /etc/xray/ssh
+                    passwd -l "$usr" &> /dev/null
+                    
+                    M=$(date -d "$waktulock minutes" +%M); H=$(date -d "$waktulock minutes" +%H)
+                    echo "$M $H * * * root passwd -u $usr && echo \"### $usr $exp $pass\" >> /etc/xray/ssh && rm -f /etc/cron.d/ssh_unlock_${usr}" > /etc/cron.d/ssh_unlock_${usr}
+                    TINDAKAN="DIKUNCI SEMENTARA ($waktulock Menit)"
+                
+                # --- MODE DELETE ---
+                elif [ "$type" == "delete" ]; then
+                    sed -i "/^### $usr $exp $pass/d" /etc/xray/ssh
+                    userdel -f "$usr" &> /dev/null
+                    rm -f /etc/xray/sshx/${usr}IP
+                    rm -f /home/vps/public_html/ssh-${usr}.txt
+                    TINDAKAN="DIHAPUS PERMANEN"
+                
+                # --- MODE SANKSI BERTINGKAT ---
+                elif [ "$type" == "bertingkat" ]; then
+                    sp_file="${DIR_CONF}/${usr}_sp"
+                    current_sp=$(cat "$sp_file" 2>/dev/null || echo "0")
+                    new_sp=$((current_sp + 1))
+                    echo "$new_sp" > "$sp_file"
+
+                    if [ "$new_sp" -eq 1 ]; then
+                        echo "### $usr $exp $pass" >> ${DIR_CONF}/listlock
+                        sed -i "/^### $usr $exp $pass/d" /etc/xray/ssh
+                        passwd -l "$usr" &> /dev/null
+                        M=$(date -d "$sp1_dur minutes" +%M); H=$(date -d "$sp1_dur minutes" +%H)
+                        echo "$M $H * * * root passwd -u $usr && echo \"### $usr $exp $pass\" >> /etc/xray/ssh && rm -f /etc/cron.d/ssh_unlock_${usr}" > /etc/cron.d/ssh_unlock_${usr}
+                        TINDAKAN="SP-1: KUNCI SEMENTARA ($sp1_dur Menit)"
+                    elif [ "$new_sp" -eq 2 ]; then
+                        echo "### $usr $exp $pass" >> ${DIR_CONF}/listlock
+                        sed -i "/^### $usr $exp $pass/d" /etc/xray/ssh
+                        passwd -l "$usr" &> /dev/null
+                        M=$(date -d "$sp2_dur minutes" +%M); H=$(date -d "$sp2_dur minutes" +%H)
+                        echo "$M $H * * * root passwd -u $usr && echo \"### $usr $exp $pass\" >> /etc/xray/ssh && rm -f /etc/cron.d/ssh_unlock_${usr}" > /etc/cron.d/ssh_unlock_${usr}
+                        TINDAKAN="SP-2: KUNCI SEMENTARA ($sp2_dur Menit)"
+                    elif [ "$new_sp" -ge 3 ]; then
+                        sed -i "/^### $usr $exp $pass/d" /etc/xray/ssh
+                        userdel -f "$usr" &> /dev/null
+                        rm -f /etc/xray/sshx/${usr}IP
+                        rm -f /home/vps/public_html/ssh-${usr}.txt
+                        rm -f "$sp_file"
+                        TINDAKAN="SP-3: AKUN DIHAPUS PERMANEN"
+                    fi
                 fi
+
+                TEXT_SANKSI="
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b> 🚨 SANKSI MULTI LOGIN SSH</b>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b>DOMAIN   :</b> <code>${domen}</code>
+<b>ISP      :</b> <code>${ISP} ${CITY}</code>
+<b>USERNAME :</b> <code>${usr}</code>
+<b>SANKSI   :</b> <b>${TINDAKAN}</b>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<b>IP TERAKHIR :</b>
+<code>$ip_list</code>
+<code>◇━━━━━━━━━━━━━━━━◇</code>
+<i>Sistem memutus akses akun tersebut...</i>"
+                curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT_SANKSI&parse_mode=html" $URL >/dev/null
             fi
         fi
     done
-    sleep 15
+
+    # Jeda 30 detik agar CPU rileks
+    sleep 30
 done
 EOF
-    chmod +x /usr/local/bin/autokick_daemon
+    chmod +x /usr/local/bin/autokick_ssh_daemon
 
     # 2. Buat file systemd service
-    cat > /etc/systemd/system/autokick.service << 'EOF'
+    cat > /etc/systemd/system/autokick-ssh.service << 'EOF'
 [Unit]
-Description=Auto Kick MultiLogin SSH
+Description=Auto Kick Limit IP SSH & Dropbear
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/autokick_daemon
+ExecStart=/usr/local/bin/autokick_ssh_daemon
 Restart=always
 RestartSec=3
 
@@ -1047,37 +1205,37 @@ EOF
     systemctl daemon-reload
 fi
 
-# Cek Status Service Aktif atau Tidak
-if systemctl is-active --quiet autokick; then
+# Cek Status Service
+if systemctl is-active --quiet autokick-ssh; then
     status_service="\033[0;32mON / RUNNING\033[0m "
 else
     status_service="\033[0;31mOFF / STOPPED\033[0m"
 fi
 
-# Tampilan Menu Control
+# Tampilan Menu
 echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
-echo -e "$COLOR1│${NC}         ${WH}• AUTO KICK MULTILOGIN •${NC}          $COLOR1│${NC}"
+echo -e "$COLOR1│${NC}         ${WH}• AUTO LIMIT SSH PANEL •${NC}          $COLOR1│${NC}"
 echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
 echo -e "$COLOR1│${NC} Status Sistem : $status_service            "
 echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
-echo -e "$COLOR1│${NC} ${WH}[1] Turn ON Auto Kick${NC}                     $COLOR1│${NC}"
-echo -e "$COLOR1│${NC} ${WH}[2] Turn OFF Auto Kick${NC}                    $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[1] Turn ON Auto Limit SSH${NC}                $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[2] Turn OFF Auto Limit SSH${NC}               $COLOR1│${NC}"
 echo -e "$COLOR1│${NC} ${WH}[0] Back to Menu${NC}                          $COLOR1│${NC}"
 echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
 read -p " Select Option : " opt
 
 case $opt in
     1)
-        systemctl enable --now autokick &> /dev/null
-        echo -e " Auto Kick berhasil diaktifkan."
+        systemctl enable --now autokick-ssh &> /dev/null
+        echo -e " Auto Limit SSH berhasil diaktifkan."
         sleep 1
-        toggle_autokick
+        toggle_autokick_ssh
         ;;
     2)
-        systemctl disable --now autokick &> /dev/null
-        echo -e " Auto Kick berhasil dimatikan."
+        systemctl disable --now autokick-ssh &> /dev/null
+        echo -e " Auto Limit SSH berhasil dimatikan."
         sleep 1
-        toggle_autokick
+        toggle_autokick_ssh
         ;;
     0)
         menu
@@ -1085,11 +1243,10 @@ case $opt in
     *)
         echo -e " Pilihan tidak valid!"
         sleep 1
-        toggle_autokick
+        toggle_autokick_ssh
         ;;
 esac
 }
-
 function listssh(){
     clear
     
