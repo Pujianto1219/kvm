@@ -10,88 +10,18 @@ COLBG1="$(cat /etc/rmbl/theme/$colornow | grep -w "BG" | cut -d: -f2|sed 's/ //g
 WH='\033[1;37m'
 ###########- END COLOR CODE -##########
 echo -e "$COLOR1┌─────────────────────────────────────────────────┐${NC}"
-echo -e "$COLOR1 ${NC} ${COLBG1}                 ${WH}⇱ UPDATE ⇲                    ${NC} $COLOR1 $NC"
-echo -e "$COLOR1 ${NC} ${COLBG1}             ${WH}⇱ SCRIPT TERBARU ⇲                ${NC} $COLOR1 $NC"
+echo -e "$COLOR1 ${NC} ${COLBG1}                 ⇱ UPDATE ⇲                     ${NC} $COLOR1 $NC"
+echo -e "$COLOR1 ${NC} ${COLBG1}             ⇱ SCRIPT TERBARU ⇲                 ${NC} $COLOR1 $NC"
 echo -e "$COLOR1└─────────────────────────────────────────────────┘${NC}"
 
+# Daftar semua file yang dikelola oleh script ini
+FILES="menu m-trgo restore backup addnoobz cek-noobz m-noobz m-vmess m-vless m-trojan m-system m-sshovpn m-ssws running m-update m-backup m-theme m-ip m-bot update ws-dropbear bckpbot tendang bottelegram cleaner m-allxray xraylimit xp trialvmess trialvless trialtrojan trialssh bantwidth ws-stunnel autocpu speedtest"
 
-#hapus menu
-rm -rf restore
-rm -rf m-trgo
-rm -rf backup
-rm -rf menu
-rm -rf addnoobz
-rm -rf cek-noobz
-rm -rf m-noobz
-rm -rf m-vmess
-rm -rf m-vless
-rm -rf m-trojan
-rm -rf m-system
-rm -rf m-sshovpn
-rm -rf m-ssws
-rm -rf running
-rm -rf m-update
-rm -rf m-backup
-rm -rf m-theme
-rm -rf m-ip
-rm -rf m-bot
-rm -rf update
-rm -rf ws-dropbear
-rm -rf bckpbot
-rm -rf tendang
-rm -rf bottelegram
-rm -rf restore
-rm -rf backup
-rm -rf cleaner
-rm -rf m-allxray
-rm -rf xraylimit
-rm -rf xp
-rm -rf trialvmess
-rm -rf trialvless
-rm -rf trialtrojan
-rm -rf trialssh
-rm -rf bantwidth
-rm -rf ws-stunnel
-
-# download menu
+# Hapus menu lama
 cd /usr/bin
-rm -rf restore
-rm -rf m-trgo
-rm -rf backup
-rm -rf menu
-rm -rf addnoobz
-rm -rf cek-noobz
-rm -rf m-noobz
-rm -rf m-vmess
-rm -rf m-vless
-rm -rf m-trojan
-rm -rf m-system
-rm -rf m-sshovpn
-rm -rf m-ssws
-rm -rf running
-rm -rf m-backup
-rm -rf m-theme
-rm -rf m-ip
-rm -rf m-bot
-rm -rf update
-rm -rf ws-dropbear
-rm -rf bckpbot
-rm -rf tendang
-rm -rf bottelegram
-rm -rf restore
-rm -rf backup
-rm -rf cleaner
-rm -rf m-allxray
-rm -rf xraylimit
-rm -rf xp
-rm -rf trialvmess
-rm -rf trialvless
-rm -rf trialtrojan
-rm -rf trialssh
-rm -rf autocpu
-rm -rf bantwidth
-rm -rf ws-stunnel
-
+for file in $FILES; do
+    rm -rf $file
+done
 
 fun_bar() {
     CMD[0]="$1"
@@ -119,74 +49,53 @@ fun_bar() {
     echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
     tput cnorm
 }
-res1() {
-    
-wget -q -O /usr/bin/menu "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/menu.sh" && chmod +x /usr/bin/menu
-wget -q -O /usr/bin/m-trgo "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-trgo.sh" && chmod +x /usr/bin/m-trgo
-wget -q -O /usr/bin/restore "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/restore.sh" && chmod +x /usr/bin/restore
-wget -q -O /usr/bin/backup "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/backup.sh" && chmod +x /usr/bin/backup
-wget -q -O /usr/bin/addnoobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/bot/addnoobz.sh" && chmod +x /usr/bin/addnoobz
-wget -q -O /usr/bin/cek-noobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/bot/cek-noobz.sh" && chmod +x /usr/bin/cek-noobz
-wget -q -O /usr/bin/m-noobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-noobz.sh" && chmod +x /usr/bin/m-noobz
-wget -q -O /usr/bin/m-ip "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-ip.sh" && chmod +x /usr/bin/m-ip
-wget -q -O /usr/bin/m-bot "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-bot.sh" && chmod +x /usr/bin/m-bot
-wget -q -O /usr/bin/update "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/update.sh" && chmod +x /usr/bin/update
-wget -q -O /usr/bin/m-theme "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-theme.sh" && chmod +x /usr/bin/m-theme
-wget -q -O /usr/bin/m-vmess "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-vmess.sh" && chmod +x /usr/bin/m-vmess
-wget -q -O /usr/bin/m-vless "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-vless.sh" && chmod +x /usr/bin/m-vless
-wget -q -O /usr/bin/m-trojan "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-trojan.sh" && chmod +x /usr/bin/m-trojan
-wget -q -O /usr/bin/m-system "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-system.sh" && chmod +x /usr/bin/m-system
-wget -q -O /usr/bin/m-sshovpn "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-sshovpn.sh" && chmod +x /usr/bin/m-sshovpn
-wget -q -O /usr/bin/m-ssws "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-ssws.sh" && chmod +x /usr/bin/m-ssws
-wget -q -O /usr/bin/running "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/running.sh" && chmod +x /usr/bin/running
-wget -q -O /usr/bin/m-backup "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-backup.sh" && chmod +x /usr/bin/m-backup
-wget -q -O /usr/bin/m-update "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-update.sh" && chmod +x /usr/bin/m-update
-wget -q -O /usr/bin/speedtest "https://raw.githubusercontent.com/Pujianto1219/kvm/main/speedtest_cli.py" && chmod +x /usr/bin/speedtest
-wget -q -O /usr/bin/bckpbot "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/bckpbot.sh" && chmod +x /usr/bin/bckpbot
-wget -q -O /usr/bin/tendang "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/tendang.sh" && chmod +x /usr/bin/tendang
-wget -q -O /usr/bin/bottelegram "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/bottelegram.sh" && chmod +x /usr/bin/bottelegram
-wget -q -O /usr/bin/m-allxray "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-allxray.sh" && chmod +x /usr/bin/m-allxray
-wget -q -O /usr/bin/xraylimit "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/xraylimit.sh" && chmod +x /usr/bin/xraylimit
-wget -q -O /usr/bin/trialvmess "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialvmess.sh" && chmod +x /usr/bin/trialvmess
-wget -q -O /usr/bin/trialvless "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialtrojan.sh" && chmod +x /usr/bin/trialtrojan
-wget -q -O /usr/bin/trialtrojan "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialvless.sh" && chmod +x /usr/bin/trialvless
-wget -q -O /usr/bin/trialssh "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialssh.sh" && chmod +x /usr/bin/trialssh
-wget -q -O /usr/bin/autocpu "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/autocpu.sh" && chmod +x /usr/bin/autocpu
-wget -q -O /usr/bin/bantwidth "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/bantwidth" && chmod +x /usr/bin/bantwidth
-wget -q -O /usr/bin/autocpu "https://raw.githubusercontent.com/Pujianto1219/kvm/main/sshws/ws-stunnel" && chmod +x /usr/bin/autocpu
-chmod +x menu
-chmod +x m-vmess
-chmod +x m-vless
-chmod +x m-trojan
-chmod +x m-system
-chmod +x m-sshovpn
-chmod +x m-ssws
-chmod +x running
-chmod +x m-update
-chmod +x m-backup
-chmod +x m-theme
-chmod +x m-ip
-chmod +x m-bot
-chmod +x update
-chmod +x bckpbot
-chmod +x tendang
-chmod +x bottelegram
-chmod +x backup
-chmod +x restore
-chmod +x cleaner
-chmod +x m-allxray
-chmod +x xraylimit
-chmod +x xp
-chmod +x trialvmess
-chmod +x trialvless
-chmod +x trialtrojan
-chmod +x trialssh
-chmod +x autocpu
-chmod +x bantwidth
-chmod +x ws-stunnel
-clear
 
+res1() {
+    # Download menu
+    wget -q -O /usr/bin/menu "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/menu.sh"
+    wget -q -O /usr/bin/m-trgo "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-trgo.sh"
+    wget -q -O /usr/bin/restore "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/restore.sh"
+    wget -q -O /usr/bin/backup "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/backup.sh"
+    wget -q -O /usr/bin/addnoobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/bot/addnoobz.sh"
+    wget -q -O /usr/bin/cek-noobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/bot/cek-noobz.sh"
+    wget -q -O /usr/bin/m-noobz "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-noobz.sh"
+    wget -q -O /usr/bin/m-ip "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-ip.sh"
+    wget -q -O /usr/bin/m-bot "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-bot.sh"
+    wget -q -O /usr/bin/update "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/update.sh"
+    wget -q -O /usr/bin/m-theme "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-theme.sh"
+    wget -q -O /usr/bin/m-vmess "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-vmess.sh"
+    wget -q -O /usr/bin/m-vless "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-vless.sh"
+    wget -q -O /usr/bin/m-trojan "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-trojan.sh"
+    wget -q -O /usr/bin/m-system "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-system.sh"
+    wget -q -O /usr/bin/m-sshovpn "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-sshovpn.sh"
+    wget -q -O /usr/bin/m-ssws "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-ssws.sh"
+    wget -q -O /usr/bin/running "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/running.sh"
+    wget -q -O /usr/bin/m-backup "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-backup.sh"
+    wget -q -O /usr/bin/m-update "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-update.sh"
+    wget -q -O /usr/bin/speedtest "https://raw.githubusercontent.com/Pujianto1219/kvm/main/speedtest_cli.py"
+    wget -q -O /usr/bin/bckpbot "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/bckpbot.sh"
+    wget -q -O /usr/bin/tendang "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/tendang.sh"
+    wget -q -O /usr/bin/bottelegram "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/bottelegram.sh"
+    wget -q -O /usr/bin/m-allxray "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/m-allxray.sh"
+    wget -q -O /usr/bin/xraylimit "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/xraylimit.sh"
+    wget -q -O /usr/bin/trialvmess "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialvmess.sh"
+    wget -q -O /usr/bin/trialvless "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialvless.sh"
+    wget -q -O /usr/bin/trialtrojan "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialtrojan.sh"
+    wget -q -O /usr/bin/trialssh "https://raw.githubusercontent.com/Pujianto1219/kvm/main/menu/trialssh.sh"
+    wget -q -O /usr/bin/autocpu "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/autocpu.sh"
+    wget -q -O /usr/bin/bantwidth "https://raw.githubusercontent.com/Pujianto1219/kvm/main/install/bantwidth"
+    wget -q -O /usr/bin/ws-stunnel "https://raw.githubusercontent.com/Pujianto1219/kvm/main/sshws/ws-stunnel"
+
+    # Proses otomatis FIX ^M (CRLF to LF) dan memberikan izin eksekusi (chmod)
+    for file in $FILES; do
+        if [ -f "/usr/bin/$file" ]; then
+            sed -i 's/\r$//' "/usr/bin/$file"
+            chmod +x "/usr/bin/$file"
+        fi
+    done
+    clear
 }
+
 echo -e ""
 echo -e "  \033[1;91m Update Script...\033[1;37m"
 fun_bar 'res1'
