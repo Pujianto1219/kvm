@@ -1307,6 +1307,290 @@ function login-vmess(){
     read -n 1 -s -r -p "Tekan tombol apa saja untuk kembali ke menu..."
     m-vmess
 }
+function toggle_autokick_xray() {
+clear
+# Membuat file script daemon dan service jika belum ada
+if [ ! -f "/etc/systemd/system/autokick-xray.service" ]; then
+    # 1. Buat script latar belakang dari kode asli pengguna
+    cat > /usr/local/bin/autokick_xray_daemon << 'EOF'
+#!/bin/bash
+
+# --- FUNGSI BANTUAN ---
+tim2sec() {
+    mult=1; arg="$1"; inu=0
+    while [ ${#arg} -gt 0 ]; do
+        prev="${arg%:*}"
+        if [ "$prev" = "$arg" ]; then curr="${arg#0}"; prev=""
+        else curr="${arg##*:}"; curr="${curr#0}"; fi
+        curr="${curr%.*}"
+        inu=$((inu + curr * mult))
+        mult=$((mult * 60))
+        arg="$prev"
+    done
+    echo "$inu"
+}
+
+convert() {
+    local -i bytes=$1
+    if [[ $bytes -lt 1024 ]]; then echo "${bytes} B"
+    elif [[ $bytes -lt 1048576 ]]; then echo "$(((bytes + 1023) / 1024)) KB"
+    elif [[ $bytes -lt 1073741824 ]]; then echo "$(((bytes + 1048575) / 1048576)) MB"
+    else echo "$(((bytes + 1073741823) / 1073741824)) GB"
+    fi
+}
+
+# --- CORE FUNCTION: PROSES XRAY ---
+process_xray() {
+    local protocol=$1
+    local tag_id=$2
+    local tag_grpc=$3
+    local dir_limit="/etc/limit/${protocol}"
+    local dir_conf="/etc/${protocol}"
+    
+    mkdir -p $dir_limit $dir_conf
+    
+    local type=$(cat /etc/typexray 2>/dev/null || echo "delete")
+    local waktulock=$(cat /etc/waktulock 2>/dev/null || echo "15")
+    local limit_notif=$(cat ${dir_conf}/notif 2>/dev/null || echo "3")
+    local sp1_dur=$(cat ${dir_conf}/sp1 2>/dev/null || echo "15")
+    local sp2_dur=$(cat ${dir_conf}/sp2 2>/dev/null || echo "30")
+
+    users=($(grep "^${tag_grpc}" /etc/xray/config.json | awk '{print $2}' | sort -u))
+    echo -n > /tmp/${protocol}_log
+
+    # 1. Parsing Log Xray
+    for usr in "${users[@]}"; do
+        log_data=$(grep -w "email: ${usr}" /var/log/xray/access.log | tail -n 150)
+        while read -r line; do
+            if [[ -n ${line} ]]; then
+                set -- ${line}
+                ip_addr="${7}"
+                time_log="${2}"
+                port_log="${3}"
+                port_clean=$(echo "${port_log}" | sed 's/tcp://g' | sed '/^$/d' | cut -d. -f1,2,3)
+                
+                now=$(tim2sec ${timenow})
+                client=$(tim2sec ${time_log})
+                diff_sec=$((now - client))
+                
+                if [[ ${diff_sec} -lt 40 ]]; then
+                    if ! grep -w "${ip_addr}" /tmp/${protocol}_log | grep -w "${port_clean}" >/dev/null; then
+                        echo "${ip_addr} ${time_log} WIB : ${port_clean}" >> /tmp/${protocol}_log
+                    fi
+                fi
+            fi
+        done <<< "${log_data}"
+    done
+
+    # 2. Evaluasi Kuota & Multi-Login
+    if [[ -s /tmp/${protocol}_log ]]; then
+        for usr in "${users[@]}"; do
+            # CEK QUOTA VIA XRAY API
+            downlink=$(xray api stats --server=127.0.0.1:10085 -name "user>>>${usr}>>>traffic>>>downlink" | grep -w "value" | awk '{print $2}' | cut -d '"' -f2)
+            if [ -n "$downlink" ]; then
+                current_usage=$(cat ${dir_limit}/${usr} 2>/dev/null || echo "0")
+                new_usage=$((current_usage + downlink))
+                echo "${new_usage}" > ${dir_limit}/${usr}
+                xray api stats --server=127.0.0.1:10085 -name "user>>>${usr}>>>traffic>>>downlink" -reset > /dev/null 2>&1
+            fi
+            
+            limit_quota=$(cat ${dir_conf}/${usr} 2>/dev/null || echo "999999999999")
+            usage_quota=$(cat ${dir_limit}/${usr} 2>/dev/null || echo "0")
+            
+            if [ "$usage_quota" -gt "$limit_quota" ]; then
+                exp=$(grep -wE "^${tag_grpc} $usr" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+                uuid=$(grep -wE "^${tag_grpc} $usr" "/etc/xray/config.json" | cut -d ' ' -f 4 | sort | uniq)
+                echo "### $usr $exp $uuid" >> ${dir_conf}/userQuota
+                sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                rm -f ${dir_limit}/${usr}
+                RESTART_XRAY=1
+                continue 
+            fi
+
+            # CEK MULTI LOGIN IP
+            login_count=$(grep -w "${usr}" /tmp/${protocol}_log | wc -l)
+            ip_limit=$(cat ${dir_conf}/${usr}IP 2>/dev/null || echo "0")
+            
+            if [[ ${login_count} -gt ${ip_limit} && ${ip_limit} -ne 0 ]]; then
+                echo "$usr ${login_count}" >> ${dir_conf}/${usr}login
+                pelanggaran_ke=$(wc -l < ${dir_conf}/${usr}login)
+                ip_list=$(grep -w "${usr}" /tmp/${protocol}_log | cut -d ' ' -f 2-8 | nl -s '. ')
+
+                sed -i "/${usr}/d" /var/log/xray/access.log
+
+                if [ "$pelanggaran_ke" -lt "$limit_notif" ]; then
+                    TEXT="
+🧿───────────────────🧿            
+            ⚠️ PERINGATAN MULTI LOGIN ⚠️
+🔹 Informasi Pelanggaran
+┌─────────────────────
+│Protocol   : <b>${protocol^^}</b>
+│Username   : <code>${usr}</code>
+│Limit IP   : $ip_limit IP
+│Login IP   : ${login_count} IP
+│Peringatan : ke-$pelanggaran_ke dari $limit_notif
+└─────────────────────
+🫧IP Terpantau:
+<code>$ip_list</code>
+🧿───────────────────🧿
+♨ Harap patuhi aturan server ♨"
+                    curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
+                
+                elif [ "$pelanggaran_ke" -ge "$limit_notif" ]; then
+                    exp=$(grep -wE "^${tag_grpc} $usr" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+                    uuid=$(grep -wE "^${tag_grpc} $usr" "/etc/xray/config.json" | cut -d ' ' -f 4 | sort | uniq)
+
+                    if [ "$type" == "lock" ]; then
+                        echo "### $usr $exp $uuid" >> ${dir_conf}/listlock
+                        sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                        sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                        M=$(date -d "$waktulock minutes" +%M); H=$(date -d "$waktulock minutes" +%H)
+                        echo "$M $H * * * root /usr/bin/xray $protocol $usr $uuid $exp && rm -f /etc/cron.d/xray_${protocol}_${usr}" > /etc/cron.d/xray_${protocol}_${usr}
+                        TINDAKAN="DIKUNCI SEMENTARA ($waktulock Menit)"
+                    
+                    elif [ "$type" == "delete" ]; then
+                        sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                        sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                        TINDAKAN="DIHAPUS PERMANEN"
+                    
+                    elif [ "$type" == "bertingkat" ]; then
+                        sp_file="${dir_conf}/${usr}_sp"
+                        current_sp=$(cat "$sp_file" 2>/dev/null || echo "0")
+                        new_sp=$((current_sp + 1))
+                        echo "$new_sp" > "$sp_file"
+
+                        if [ "$new_sp" -eq 1 ]; then
+                            echo "### $usr $exp $uuid" >> ${dir_conf}/listlock
+                            sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            M=$(date -d "$sp1_dur minutes" +%M); H=$(date -d "$sp1_dur minutes" +%H)
+                            echo "$M $H * * * root /usr/bin/xray $protocol $usr $uuid $exp && rm -f /etc/cron.d/xray_${protocol}_${usr}" > /etc/cron.d/xray_${protocol}_${usr}
+                            TINDAKAN="SP-1: KUNCI SEMENTARA ($sp1_dur Menit)"
+                        elif [ "$new_sp" -eq 2 ]; then
+                            echo "### $usr $exp $uuid" >> ${dir_conf}/listlock
+                            sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            M=$(date -d "$sp2_dur minutes" +%M); H=$(date -d "$sp2_dur minutes" +%H)
+                            echo "$M $H * * * root /usr/bin/xray $protocol $usr $uuid $exp && rm -f /etc/cron.d/xray_${protocol}_${usr}" > /etc/cron.d/xray_${protocol}_${usr}
+                            TINDAKAN="SP-2: KUNCI SEMENTARA ($sp2_dur Menit)"
+                        elif [ "$new_sp" -ge 3 ]; then
+                            sed -i "/^${tag_grpc} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            sed -i "/^${tag_id} $usr $exp/,/^},{/d" /etc/xray/config.json
+                            rm -f "$sp_file"
+                            TINDAKAN="SP-3: AKUN DIHAPUS PERMANEN"
+                        fi
+                    fi
+
+                    TEXT_SANKSI="
+🧿───────────────────🧿            
+            🚨 PELANGGARAN FATAL 🚨
+🔹 Tindakan Otomatis Diterapkan
+┌─────────────────────
+│Protocol   : <b>${protocol^^}</b>
+│Username   : <code>${usr}</code>
+│Provider   : $ISP
+│Limit IP   : $ip_limit IP
+│Login IP   : ${login_count} IP
+│Sanksi     : <b>$TINDAKAN</b>
+└─────────────────────
+🫧IP Terakhir yang terpantau:
+<code>$ip_list</code>
+🧿───────────────────🧿
+♨ Sistem memutus akses akun tersebut ♨"
+                    curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT_SANKSI&parse_mode=html" $URL >/dev/null
+                    rm -rf ${dir_conf}/${usr}login
+                    RESTART_XRAY=1
+                fi
+            fi
+        done
+    fi
+}
+
+# --- MAIN LOOP DAEMON ---
+while true; do
+    RESTART_XRAY=0
+    timenow=$(date +%T" WIB")
+    CHATID=$(cat /etc/perlogin/id 2>/dev/null)
+    KEY=$(cat /etc/perlogin/token 2>/dev/null)
+    URL="https://api.telegram.org/bot$KEY/sendMessage"
+    ISP=$(cat /etc/xray/isp 2>/dev/null)
+    TIMES="10"
+
+    process_xray "vmess" "#vm" "#vmg"
+    process_xray "vless" "#vl" "#vlg"
+    process_xray "trojan" "#tr" "#trg"
+
+    if [[ "$RESTART_XRAY" -eq 1 ]]; then
+        systemctl restart xray >/dev/null 2>&1
+    fi
+
+    # Loop setiap 30 detik
+    sleep 30
+done
+EOF
+    chmod +x /usr/local/bin/autokick_xray_daemon
+
+    # 2. Buat file systemd service
+    cat > /etc/systemd/system/autokick-xray.service << 'EOF'
+[Unit]
+Description=Auto Kick Limit IP & Quota All Xray
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/autokick_xray_daemon
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+fi
+
+# Cek Status Service Aktif atau Tidak
+if systemctl is-active --quiet autokick-xray; then
+    status_service="\033[0;32mON / RUNNING\033[0m "
+else
+    status_service="\033[0;31mOFF / STOPPED\033[0m"
+fi
+
+# Tampilan Menu Control
+echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
+echo -e "$COLOR1│${NC}     ${WH}• AUTO LIMIT XRAY (ALL PROTOCOL) •${NC}    $COLOR1│${NC}"
+echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} Status Sistem : $status_service            "
+echo -e "$COLOR1├───────────────────────────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[1] Turn ON Auto Limit Xray${NC}               $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[2] Turn OFF Auto Limit Xray${NC}              $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[0] Back to Menu${NC}                          $COLOR1│${NC}"
+echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
+read -p " Select Option : " opt
+
+case $opt in
+    1)
+        systemctl enable --now autokick-xray &> /dev/null
+        echo -e " Auto Limit Xray berhasil diaktifkan."
+        sleep 1
+        toggle_autokick_xray
+        ;;
+    2)
+        systemctl disable --now autokick-xray &> /dev/null
+        echo -e " Auto Limit Xray berhasil dimatikan."
+        sleep 1
+        toggle_autokick_xray
+        ;;
+    0)
+        menu
+        ;;
+    *)
+        echo -e " Pilihan tidak valid!"
+        sleep 1
+        toggle_autokick_xray
+        ;;
+esac
+}
 function lock-vmess(){
 clear
 cd
@@ -1579,34 +1863,36 @@ read -n 1 -s -r -p "Press any key to back on menu"
 m-vmess
 }
 clear
-echo -e " $COLOR1╭════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│${NC} ${COLBG1}            ${WH}• VMESS PANEL MENU •                  ${NC} $COLOR1│ $NC"
-echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
-echo -e " $COLOR1╭════════════════════════════════════════════════════╮${NC}"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}01${WH}]${NC} ${COLOR1}• ${WH}ADD AKUN${NC}         ${WH}[${COLOR1}06${WH}]${NC} ${COLOR1}• ${WH}CEK USER CONFIG${NC}    $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}02${WH}]${NC} ${COLOR1}• ${WH}TRIAL AKUN${NC}       ${WH}[${COLOR1}07${WH}]${NC} ${COLOR1}• ${WH}CHANGE USER LIMIT${NC}  $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}03${WH}]${NC} ${COLOR1}• ${WH}RENEW AKUN${NC}       ${WH}[${COLOR1}08${WH}]${NC} ${COLOR1}• ${WH}SETTING LOCK LOGIN${NC} $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}04${WH}]${NC} ${COLOR1}• ${WH}DELETE AKUN${NC}      ${WH}[${COLOR1}09${WH}]${NC} ${COLOR1}• ${WH}UNLOCK USER LOGIN${NC}  $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}05${WH}]${NC} ${COLOR1}• ${WH}CEK USER LOGIN${NC}   ${WH}[${COLOR1}10${WH}]${NC} ${COLOR1}• ${WH}UNLOCK USER QUOTA ${NC} $COLOR1│ $NC"
-echo -e " $COLOR1│ $NC ${WH}[${COLOR1}00${WH}]${NC} ${COLOR1}• ${WH}GO BACK${NC}          ${WH}[${COLOR1}11${WH}]${NC} ${COLOR1}• ${WH}RESTORE AKUN   ${NC}    $COLOR1│ $NC"
-echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
-echo -e " $COLOR1╭═════════════════════════ ${WH}BY${NC} ${COLOR1}═══════════════════════╮ ${NC}"
-printf "                      ${COLOR1}%3s${NC} ${WH}%0s${NC} ${COLOR1}%3s${NC}\n" "• " "$author" " •"
-echo -e " $COLOR1╰════════════════════════════════════════════════════╯${NC}"
+author=$(cat /etc/profil)
+echo -e "$COLOR1╭───────────────────────────────────────────╮${NC}"
+echo -e "$COLOR1│${NC}             ${WH}• VMESS PANEL MENU •${NC}          $COLOR1│${NC}"
+echo -e "$COLOR1├─────────────────────┬─────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[01] ADD AKUN${NC}       $COLOR1│${NC} ${WH}[07] CHANGE LIMIT${NC}   $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[02] TRIAL AKUN${NC}     $COLOR1│${NC} ${WH}[08] SETUP LOCK${NC}     $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[03] RENEW AKUN${NC}     $COLOR1│${NC} ${WH}[09] UNLOCK IP${NC}      $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[04] DELETE AKUN${NC}    $COLOR1│${NC} ${WH}[10] UNLOCK QUOTA${NC}   $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[05] CEK ONLINE${NC}     $COLOR1│${NC} ${WH}[11] RESTORE AKUN${NC}   $COLOR1│${NC}"
+echo -e "$COLOR1│${NC} ${WH}[06] CEK CONFIG${NC}     $COLOR1│${NC} ${WH}[12] AUTO LIMIT${NC}     $COLOR1│${NC}"
+echo -e "$COLOR1├─────────────────────┴─────────────────────┤${NC}"
+echo -e "$COLOR1│${NC} ${WH}[00] GO BACK / EXIT MENU${NC}                  $COLOR1│${NC}"
+echo -e "$COLOR1╰───────────────────────────────────────────╯${NC}"
+echo -e "              ${WH}• $author •${NC}              "
 echo -e ""
 echo -ne " ${WH}Select menu ${COLOR1}: ${WH}"; read opt
+
 case $opt in
-01 | 1) clear ; add-vmess ;;
-02 | 2) clear ; trial-vmess ;;
-03 | 3) clear ; renew-vmess ;;
-04 | 4) clear ; del-vmess ;;
-05 | 5) clear ; cek-vmess ;;
-06 | 6) clear ; list-vmess ;;
-07 | 7) clear ; limit-vmess ;;
-08 | 8) clear ; login-vmess ;;
-09 | 9) clear ; lock-vmess ;;
-10 | 10) clear ; quota-user ;;
-11 | 11) clear ; res-user ;;
-00 | 0) clear ; menu ;;
-*) clear ; m-vmess ;;
+    01 | 1) clear ; add-vmess ;;
+    02 | 2) clear ; trial-vmess ;;
+    03 | 3) clear ; renew-vmess ;;
+    04 | 4) clear ; del-vmess ;;
+    05 | 5) clear ; cek-vmess ;;
+    06 | 6) clear ; list-vmess ;;
+    07 | 7) clear ; limit-vmess ;;
+    08 | 8) clear ; login-vmess ;;
+    09 | 9) clear ; lock-vmess ;;
+    10 | 10) clear ; quota-user ;;
+    11 | 11) clear ; res-user ;;
+    12 | 12) clear ; toggle_autokick_xray ;;
+    00 | 0) clear ; menu ;;
+    *) clear ; m-vmess ;;
 esac
