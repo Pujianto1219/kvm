@@ -304,58 +304,6 @@ m-bot2
 fi
 menu
 }
-function cek_user_lock() {
-    clear
-    echo -e "$COLOR1╔═══════════════════════════════════════════╗${NC}"
-    echo -e "$COLOR1║${NC}${COLBG1}         ✦ DAFTAR USER TERLIMIT ✦          ${NC}$COLOR1║${NC}"
-    echo -e "$COLOR1╠═══════════════════════════════════════════╣${NC}"
-
-    found=0
-
-    # Fungsi internal untuk mencetak list dengan rapi
-    print_list() {
-        local file=$1
-        local title=$2
-        if [ -s "$file" ]; then
-            echo -e "$COLOR1║${NC} ${WH}${title}${NC} $COLOR1║${NC}"
-            echo -e "$COLOR1║${NC} \033[0;33mUSERNAME           EXP DATE\033[0m              $COLOR1║${NC}"
-            while read -r line; do
-                # Mengambil kolom ke-2 (user) dan ke-3 (exp) dari file lock
-                user=$(echo "$line" | cut -d' ' -f2)
-                exp=$(echo "$line" | cut -d' ' -f3)
-                printf "$COLOR1║${NC} %-18s %-22s $COLOR1║${NC}\n" "$user" "$exp"
-            done < "$file"
-            echo -e "$COLOR1╟───────────────────────────────────────────╢${NC}"
-            found=1
-        fi
-    }
-
-    # Cek File Lock SSH
-    print_list "/etc/xray/sshx/listlock" "[ SSH ] - KENA LIMIT IP                 "
-
-    # Cek File Lock VMESS
-    print_list "/etc/vmess/listlock"     "[ VMESS ] - KENA LIMIT IP               "
-    print_list "/etc/vmess/userQuota"    "[ VMESS ] - KENA LIMIT QUOTA            "
-
-    # Cek File Lock VLESS
-    print_list "/etc/vless/listlock"     "[ VLESS ] - KENA LIMIT IP               "
-    print_list "/etc/vless/userQuota"    "[ VLESS ] - KENA LIMIT QUOTA            "
-
-    # Cek File Lock TROJAN
-    print_list "/etc/trojan/listlock"    "[ TROJAN ] - KENA LIMIT IP              "
-    print_list "/etc/trojan/userQuota"   "[ TROJAN ] - KENA LIMIT QUOTA           "
-
-    if [ "$found" -eq 0 ]; then
-        echo -e "$COLOR1║${NC}                                           $COLOR1║${NC}"
-        echo -e "$COLOR1║${NC}         ${WH}TIDAK ADA USER TERLIMIT${NC}           $COLOR1║${NC}"
-        echo -e "$COLOR1║${NC}                                           $COLOR1║${NC}"
-    fi
-
-    echo -e "$COLOR1╚═══════════════════════════════════════════╝${NC}"
-    echo ""
-    read -n 1 -s -r -p " Tekan tombol apa saja untuk kembali..."
-    menu
-}
 # === MULAI KODE TAMBAHAN ACIL SHOP (FINAL PRO) ===
 function intro_acilshop(){
     clear
@@ -493,16 +441,15 @@ echo -e " $COLOR1│$NC ${COLOR1}[${WH}3${COLOR1}]${NC}${COLOR1}• ${WH}VLESS  
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}4${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN    $COLOR1│$NC   ${status_xray}${NC}     $trtls Accounts    ${NC}  $yesterday_tx $yesterday_txv${NC}"
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}5${COLOR1}]${NC}${COLOR1}• ${WH}NOOBZVPN  $COLOR1│$NC   ${stat_noobz}${NC}     $jumlah_noobz Accounts     ${NC} ${COLOR1}THIS MONTH ${NC}" 
 echo -e " $COLOR1│$NC ${COLOR1}[${WH}6${COLOR1}]${NC}${COLOR1}• ${WH}TROJAN-GO $COLOR1│$NC   ${stat_trgo}${NC}     $jumlah_trgo Accounts     ${NC} $month_tx $month_txv${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}CEK LIMIT $COLOR1│$NC"
 echo -e " $COLOR1╰════════════════╯╰══════╯╰═════════════╯╰═══════════════╯${NC}"
 
 # --- MENU NAVIGATION ---
 echo -e " $COLOR1╭═══════════════════════════╮╭═══════════════════════════╮${NC}"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE      $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1}• ${WH}MENU SYSTEM         $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}16${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED  $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"
-echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}7${COLOR1}]${NC}${COLOR1}• ${WH}DELETE ALL EXPIRED   $COLOR1││$NC ${COLOR1}[${WH}11${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT PANEL  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}8${COLOR1}]${NC}${COLOR1}• ${WH}RUNNING SERVICE      $COLOR1││$NC ${COLOR1}[${WH}12${COLOR1}]${NC}${COLOR1}• ${WH}TELEGRAM BOT NOTIF  $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}9${COLOR1}]${NC}${COLOR1}• ${WH}RESTART SERVICE      $COLOR1││$NC ${COLOR1}[${WH}13${COLOR1}]${NC}${COLOR1}• ${WH}BACKUP & RESTORE    $COLOR1│$NC"
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}10${COLOR1}]${NC}${COLOR1} ${WH}MENU SYSTEM          $COLOR1││$NC ${COLOR1}[${WH}14${COLOR1}]${NC}${COLOR1}• ${WH}MENU REBUILD        $COLOR1│$NC"   
+echo -e " $COLOR1│$NC ${COLOR1}[${WH}0${COLOR1}]${NC}${COLOR1}• ${WH}EXIT                 $COLOR1││$NC ${COLOR1}[${WH}15${COLOR1}]${NC}${COLOR1}• ${WH}UPDATE SCRIPT       $COLOR1│$NC"
 echo -e " $COLOR1╰═══════════════════════════╯╰═══════════════════════════╯${NC}"
 
 # === PANEL ADMIN (jika aktif) ===
@@ -638,24 +585,24 @@ chmod +x install_up.sh
 ./install_up.sh
 }
 echo -e ""
-echo -ne " ${WH}Select Menu 1-16 ${COLOR1}: ${WH}"; read opt
+echo -ne " ${WH}Select Menu 1-15 ${COLOR1}: ${WH}"; read opt
 case $opt in
-    01 | 1) clear ; m-sshovpn ;;
-    02 | 2) clear ; m-vmess ;;
-    03 | 3) clear ; m-vless ;;
-    04 | 4) clear ; m-trojan ;;
-    05 | 5) clear ; m-noobz ;;
-    06 | 6) clear ; m-trgo ;;
-    07 | 7) clear ; cek_user_lock ;;
-    08 | 8) clear ; running ;;
-    09 | 9) clear ; restartservice ;;
-    10 | 10) clear ; m-system ;;
-    11 | 11) clear ; m-bot ;;
-    12 | 12) clear ; m-bot2 ;;
-    13 | 13) clear ; m-backup ;;
-    14 | 14) clear ; m-rebuild ;;
-    15 | 15) clear ; m-update ;;
-    16 | 16) clear ; bash /usr/bin/ex.sh ;;
-    00 | 0) clear ; exit ;;
-    *) echo -e "${RED}Pilihan tidak valid!${NC}" ; sleep 1 ; menu ;;
+01 | 1) clear ; m-sshovpn ;;
+02 | 2) clear ; m-vmess ;;
+03 | 3) clear ; m-vless ;;
+04 | 4) clear ; m-trojan ;;
+05 | 5) clear ; m-noobz ;;
+06 | 6) clear ; m-trgo ;;
+07 | 7) clear ; bash /usr/bin/ex.sh ;;
+08 | 8) clear ; running ;;
+09 | 9) clear ; restartservice ;;
+10 | 10) clear ; m-system ;;
+11 | 11) clear ; m-bot ;;
+12 | 12) clear ; m-bot2 ;;
+13 | 13) clear ; m-backup ;;
+14 | 14) clear ; m-rebuild ;;
+15 | 15) clear ; m-update ;;
+#88 | 88) clear ; new ;;
+77 | 77) clear ; newx ;;
+99 | 99) clear ; passwd ;;
 esac
