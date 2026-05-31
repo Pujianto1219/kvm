@@ -518,64 +518,81 @@ d1=$(date -d "$Exp2" +%s)
 d2=$(date -d "$today" +%s)
 certificate=$(( (d1 - d2) / 86400 ))
 domain=$(cat /etc/xray/domain)
-function restartservice(){    
-clear
-fun_bar() {
-    CMD[0]="$1"
-    CMD[1]="$2"
-    (
-        [[ -e $HOME/fim ]] && rm $HOME/fim
-        ${CMD[0]} -y >/dev/null 2>&1
-        ${CMD[1]} -y >/dev/null 2>&1
-        touch $HOME/fim
-    ) >/dev/null 2>&1 &
-    tput civis
-    echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
-    while true; do
-        for ((i = 0; i < 18; i++)); do
-            echo -ne "\033[0;32m#"
-            sleep 0.1s
-        done
-        [[ -e $HOME/fim ]] && rm $HOME/fim && break
-        echo -e "\033[0;33m]"
-        sleep 1s
-        tput cuu1
-        tput dl1
-        echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
-    done
-    echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
-    tput cnorm
-}
-res1() {
-    systemctl restart nginx
-    systemctl restart trojan-go
-    systemctl restart xray
-    systemctl restart noobzvpns
-    systemctl restart daemon
-    systemctl restart udp-custom
-    systemctl restart ws-dropbear
-    systemctl restart ws-stunnel
-    systemctl restart openvpn
-    systemctl restart cron
-    systemctl restart netfilter-persistent
-    systemctl restart squid
-    systemctl restart badvpn1
-    systemctl restart badvpn2
-    systemctl restart badvpn3
-    systemctl restart client
-    systemctl restart server
-}
-clear
-echo -e "$COLOR1 ╭══════════════════════════════════════════╮${NC}"
-echo -e "$COLOR1 ${NC} ${COLBG2}          ${WH}RESTART SERVICE VPS             ${NC} $COLOR1 $NC"
-echo -e "$COLOR1 ╰══════════════════════════════════════════╯${NC}"
-echo -e ""
-echo -e "  \033[1;91m Restart All Service... \033[1;37m"
-fun_bar 'res1'
+function restartservice() {
+    clear
 
-echo -e ""
-read -n 1 -s -r -p "Press [ Enter ] to back on menu"
-menu
+    # ==========================================
+    # 1. Fungsi Animasi Progress Bar
+    # ==========================================
+    fun_bar() {
+        local cmd="$1"
+        
+        # Jalankan perintah di background dan tangkap PID-nya
+        ( $cmd >/dev/null 2>&1 ) &
+        local pid=$!
+
+        tput civis # Sembunyikan kursor
+        echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+        
+        # Selama proses dengan PID tersebut masih berjalan
+        while kill -0 $pid 2>/dev/null; do
+            for ((i = 0; i < 18; i++)); do
+                # Jika proses selesai di tengah animasi, langsung hentikan loop
+                if ! kill -0 $pid 2>/dev/null; then
+                    break 2
+                fi
+                echo -ne "\033[0;32m#"
+                sleep 0.1
+            done
+            
+            # Jika 18 '#' sudah tercetak tapi proses belum selesai, reset animasi
+            if kill -0 $pid 2>/dev/null; then
+                echo -e "\033[0;33m]"
+                sleep 0.5
+                tput cuu1
+                tput dl1
+                echo -ne "  \033[0;33mPlease Wait Loading \033[1;37m- \033[0;33m["
+            fi
+        done
+
+        # Tutup kurung siku dan cetak OK saat selesai
+        echo -e "\033[0;33m]\033[1;37m -\033[1;32m OK !\033[1;37m"
+        tput cnorm # Tampilkan kursor kembali
+    }
+
+    # ==========================================
+    # 2. Fungsi Eksekusi Restart Service
+    # ==========================================
+    res1() {
+        # Masukkan semua nama service ke dalam Array
+        local services=(
+            nginx trojan-go xray noobzvpns daemon udp-custom
+            ws-dropbear ws-stunnel openvpn cron netfilter-persistent
+            squid badvpn1 badvpn2 badvpn3 client server
+        )
+        
+        # Lakukan restart secara berurutan menggunakan loop
+        for svc in "${services[@]}"; do
+            systemctl restart "$svc"
+        done
+    }
+
+    # ==========================================
+    # 3. Tampilan UI / Menu Utama
+    # ==========================================
+    # Pastikan variabel $COLOR1, $NC, $COLBG2, $WH sudah di-define sebelumnya
+    echo -e "${COLOR1} ╭══════════════════════════════════════════╮${NC}"
+    echo -e "${COLOR1} ${NC} ${COLBG2}          ${WH}RESTART SERVICE VPS             ${NC} ${COLOR1}${NC}"
+    echo -e "${COLOR1} ╰══════════════════════════════════════════╯${NC}"
+    echo -e ""
+    echo -e "  \033[1;91mRestart All Service... \033[1;37m"
+    
+    # Panggil fungsi progress bar dengan parameter nama fungsi
+    fun_bar 'res1'
+
+    echo -e ""
+    read -n 1 -s -r -p "Press [ Enter ] to back on menu"
+    menu
 }
 function updatews(){
 cd
