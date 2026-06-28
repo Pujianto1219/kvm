@@ -340,45 +340,203 @@ echo -e "$Pass\n$Pass\n"|passwd $Login &> /dev/null
 echo -e "### $Login $expi $Pass" >> /etc/xray/ssh
 
 # Membuat File OpenClash/TXT Format
-cat > /home/vps/public_html/ssh-$Login.txt <<-END
-_______________________________
-Format SSH OVPN Account
-_______________________________
-Username         : $Login
-Password         : $Pass
-Expired          : $timer Minutes
-_______________________________
-Host             : $domen
-ISP              : $ISP
-CITY             : $CITY
-Login Limit      : ${iplim} IP
-Quota Limit      : ${Quota} GB
-Port OpenSSH     : 22
-Port Dropbear    : 143, 109
-Port SSH WS      : 80, 7788, 8181, 8282
-Port SSH SSL WS  : 443
-Port SSL/TLS     : 8443, 8880
-Port OVPN WS SSL : 2086
-Port OVPN SSL    : 990
-Port OVPN TCP    : 1194
-Port OVPN UDP    : 2200
-BadVPN UDP       : 7100, 7300, 7300
-_______________________________
-Host Slowdns     : $sldomain
-Port Slowdns     : 80, 443, 53
-Pub Key          : $slkey
-_______________________________
-SSH UDP VIRAL : $domen:1-65535@$Login:$Pass
-_______________________________
-HTTP COSTUM : $domen:80@$Login:$Pass
-_______________________________
-Payload WS/WSS   :
-GET / HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: ws[crlf][crlf]
-_______________________________
-OpenVPN SSL      : https://$domen:81/ssl.ovpn
-OpenVPN TCP      : https://$domen:81/tcp.ovpn
-OpenVPN UDP      : https://$domen:81/udp.ovpn
-_______________________________
+cat > /home/vps/public_html/ssh-$Login.html <<-END
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account SSH - $Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #171b26;
+            color: #9ba1b4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background-color: #212634;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            padding: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header-icon {
+            background-color: #1b4933;
+            color: #22c55e;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .header-text h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 18px;
+        }
+        .header-text p {
+            margin: 5px 0 0;
+            font-size: 13px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 25px 0 15px;
+        }
+        .section-title i { margin-right: 10px; }
+        .text-green { color: #22c55e; }
+        .text-purple { color: #c084fc; }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #2d3345;
+            font-size: 14px;
+        }
+        .row:last-child { border-bottom: none; }
+        .row-label { display: flex; align-items: center; }
+        .row-label i { margin-right: 10px; font-size: 12px; color: #6b7280; width: 15px; text-align: center; }
+        .row-value { color: #e2e8f0; text-align: right; word-break: break-all; margin-left: 15px; }
+        
+        .pubkey-container {
+            display: flex;
+            align-items: center;
+            background-color: #2d3345;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #3f4760;
+        }
+        .pubkey-text {
+            font-family: monospace;
+            font-size: 11px;
+            color: #e2e8f0;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .btn-copy {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .status-unlocked { color: #22c55e; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="header-text">
+            <h2>Account SSH/OpenVPN</h2>
+            <p>$domen</p>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-key text-green"></i> Credentials
+    </div>
+    
+    <div class="row">
+        <div class="row-label"><i class="fas fa-user"></i> Username</div>
+        <div class="row-value">$Login</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-lock"></i> Password</div>
+        <div class="row-value">$Pass</div>
+    </div>
+    <div class="row" style="align-items: flex-start;">
+        <div class="row-label" style="margin-top: 10px;"><i class="fas fa-key"></i> Pubkey</div>
+        <div class="pubkey-container">
+            <div class="pubkey-text" id="pubkey">$slkey</div>
+            <button class="btn-copy" onclick="copyKey()"><i class="fas fa-copy"></i></button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-server"></i> NS Domain</div>
+        <div class="row-value">$sldomain</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-toggle-on"></i> Status</div>
+        <div class="row-value status-unlocked">Unlocked</div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-plug text-purple"></i> Port Settings
+    </div>
+    
+    <div class="row">
+        <div class="row-label"><i class="fas fa-shield-alt"></i> OpenVPN</div>
+        <div class="row-value">1194, 2200</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-tachometer-alt"></i> SlowDNS</div>
+        <div class="row-value">53, 443</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-random"></i> UDP Custom</div>
+        <div class="row-value">1-65535</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-water"></i> Squid</div>
+        <div class="row-value">3128</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-robot"></i> BadVPN</div>
+        <div class="row-value">7100, 7300</div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-network-wired text-purple"></i> Connection
+    </div>
+    
+    <div class="row">
+        <div class="row-label"><i class="fas fa-mobile-alt"></i> Device Limit</div>
+        <div class="row-value">${info_ip}</div>
+    </div>
+    <div class="row">
+        <div class="row-label"><i class="fas fa-calendar-alt"></i> Expired</div>
+        <div class="row-value">$exp</div>
+    </div>
+</div>
+
+<script>
+    function copyKey() {
+        var keyText = document.getElementById("pubkey").innerText;
+        navigator.clipboard.writeText(keyText).then(function() {
+            alert("Pubkey disalin!");
+        });
+    }
+</script>
+
+</body>
+</html>
 END
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
