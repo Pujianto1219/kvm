@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akun SSH - {{USERNAME}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* Margin diperbaiki: 20px atas, auto kiri-kanan (biar tengah), 40px bawah (biar tidak mentok) */
+        .acc-card { max-width: 420px; width: 100%; margin: 20px auto 40px auto; background: #0a0a0f; border: 1px solid #1f1f2e; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); overflow: hidden; }
+        .acc-box { padding: 15px; margin: 0 15px; }
+        .acc-box-title { font-weight: bold; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<!-- Hapus class flex dan kawan-kawannya yang bikin error scroll -->
+<body class="antialiased text-slate-200 p-4">
+    
+        <div class="acc-card w-full relative">
+        
+        <!-- HEADER: Timer & Badges (ULTRA PREMIUM) -->
+        <div class="p-8 border-b border-slate-800 text-center relative overflow-hidden bg-slate-900/60">
+            
+            <!-- Efek Ambience / Cahaya Latar Belakang -->
+            <div class="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-transparent to-transparent pointer-events-none"></div>
+            <!-- Garis Neon Biru di Ujung Atas -->
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.8)]"></div>
+            
+            <!-- Tempat Badge Otomatis (Tetap Dipertahankan) -->
+            <div id="account-type-badge" class="mb-5 relative z-10 flex justify-center"></div>
+            
+            <!-- USERNAME dengan Efek Gradasi Besi/Perak dan Ikon -->
+            <h2 class="text-3xl md:text-4xl font-black tracking-[0.15em] relative z-10 uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-lg flex justify-center items-center gap-3">
+                <i class="fas fa-user-shield text-2xl text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
+                {{USERNAME}}
+            </h2>
+            
+            <!-- Sub-teks Kosmetik Ala Sistem Cyber -->
+            <div class="relative z-10 mt-2 flex justify-center items-center gap-2 text-[0.55rem] text-slate-500 font-mono tracking-[0.2em]">
+                <span>Acil | Tunneling</span> <span class="text-blue-500/50">///</span> <span>AUTH-V3</span>
+            </div>
+            
+            <!-- PANEL TIMER (Digital Screen Effect) -->
+            <div class="mt-6 bg-[#050508] border border-slate-700/80 rounded-xl p-4 inline-block relative z-10 min-w-[240px] shadow-[inset_0_0_20px_rgba(0,0,0,0.8),0_5_15px_rgba(0,0,0,0.5)] hover:border-blue-500/40 transition-colors duration-300">
+                <!-- Lampu Indikator Kedip (Kosmetik) -->
+                <div class="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_5px_rgba(59,130,246,1)]"></div>
+                <div class="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                
+                <p class="text-[0.65rem] text-slate-400 mb-2 tracking-[0.2em] uppercase flex justify-center items-center gap-2">
+                    <i class="fas fa-hourglass-half text-slate-500 text-[0.55rem]"></i> Waktu Tersisa
+                </p>
+                <div id="countdown-timer" class="font-mono text-2xl md:text-3xl font-bold tracking-wider text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                    Memuat...
+                </div>
+            </div>
+            
+        </div>
+
+                                <!-- INFO DETAIL (ULTRA MODERN DASHBOARD) -->
+        <div class="p-6 grid grid-cols-1 gap-3 border-b border-slate-800/80 bg-slate-900/40 relative">
+            <!-- Efek Garis Bercahaya Tipis di Atas -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-slate-600 to-transparent opacity-50"></div>
+
+            <!-- Box: Password -->
+            <div class="flex justify-between items-center bg-black/40 p-3.5 rounded-xl border border-slate-800/60 hover:border-slate-700 transition-colors">
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shrink-0">
+                    <i class="fas fa-key text-slate-500"></i> Password
+                </span>
+                <span class="text-cyan-400 font-mono text-sm font-bold bg-cyan-950/40 px-3 py-1 border border-cyan-800/50 rounded-lg shadow-[0_0_10px_rgba(34,211,238,0.1)] tracking-widest">{{PASSWORD}}</span>
+            </div>
+
+            <!-- Box: Masa Aktif -->
+            <div class="flex justify-between items-center bg-black/40 p-3.5 rounded-xl border border-slate-800/60 hover:border-slate-700 transition-colors">
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shrink-0">
+                    <i class="fas fa-clock text-slate-500"></i> Masa Aktif
+                </span>
+                <span id="aktif-text" class="text-emerald-400 font-mono text-sm font-bold tracking-wide">{{AKTIF}}</span>
+            </div>
+
+            <!-- Grid Split: Limit IP & Limit Quota -->
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Limit IP -->
+                <div class="flex flex-col justify-center items-center bg-black/40 p-3 rounded-xl border border-slate-800/60 hover:border-slate-700 transition-colors text-center">
+                    <span class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-network-wired text-slate-500"></i> Limit IP
+                    </span>
+                    <span class="text-yellow-400 font-mono text-sm font-bold bg-yellow-950/30 border border-yellow-800/50 rounded-md w-full py-1">{{IPLIMIT}}</span>
+                </div>
+
+                <!-- Limit Quota -->
+                <div class="flex flex-col justify-center items-center bg-black/40 p-3 rounded-xl border border-slate-800/60 hover:border-slate-700 transition-colors text-center">
+                    <span class="text-slate-400 text-[0.65rem] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-database text-slate-500"></i> Limit Quota
+                    </span>
+                    <span class="text-yellow-400 font-mono text-sm font-bold bg-yellow-950/30 border border-yellow-800/50 rounded-md w-full py-1">{{QUOTALIMIT}}</span>
+                </div>
+            </div>
+
+            <!-- Box: Server Location (100% ANTI-CROP) -->
+            <div class="flex flex-col bg-black/40 p-3.5 rounded-xl border border-slate-800/60 hover:border-slate-700 transition-colors mt-1">
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-2.5">
+                    <i class="fas fa-server text-slate-500"></i> Server Location
+                </span>
+                <div class="text-indigo-300 font-mono text-xs font-semibold bg-indigo-950/30 border border-indigo-900/50 rounded-lg w-full py-2.5 px-3 whitespace-normal break-all leading-relaxed shadow-inner">
+                    {{CITY}} ({{ISP}})
+                </div>
+            </div>
+        </div>
+
+
+        <!-- USER'S CUSTOM SNIPPET (ULTRA MODERN UI) -->
+        <div class="py-5">
+            <!-- SECTION 1: NETWORK PORTS -->
+            <div class="acc-box cyan" style="margin-bottom: 12px; border-radius: 10px; background: rgba(0,255,204,0.03); border: 1px solid rgba(0,255,204,0.1);">
+                <div class="acc-box-title" style="color: #00ffcc; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span><i class="fas fa-network-wired" style="margin-right: 6px;"></i> Network Ports</span>
+                    <span style="font-size: 0.55rem; background: rgba(0,255,204,0.1); padding: 3px 8px; border-radius: 10px; color: #00ffcc; border: 1px solid rgba(0,255,204,0.2);">AUTO</span>
+                </div>
+                <div class="acc-box-content" style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75rem;">
+                    <span style="background: rgba(0,255,204,0.05); border: 1px solid rgba(0,255,204,0.3); padding: 4px 10px; border-radius: 6px; color: #fff;">SSH: <b style="color: #00ffcc;">22</b></span>
+                    <span style="background: rgba(0,255,204,0.05); border: 1px solid rgba(0,255,204,0.3); padding: 4px 10px; border-radius: 6px; color: #fff;">Dropbear: <b style="color: #00ffcc;">143, 109</b></span>
+                    <span style="background: rgba(0,255,204,0.05); border: 1px solid rgba(0,255,204,0.3); padding: 4px 10px; border-radius: 6px; color: #fff;">WS: <b style="color: #00ffcc;">80, 7788</b></span>
+                    <span style="background: rgba(0,255,204,0.05); border: 1px solid rgba(0,255,204,0.3); padding: 4px 10px; border-radius: 6px; color: #fff;">SSL/TLS: <b style="color: #00ffcc;">443</b></span>
+                    <span style="background: rgba(0,255,204,0.05); border: 1px solid rgba(0,255,204,0.3); padding: 4px 10px; border-radius: 6px; color: #fff;">OVPN: <b style="color: #00ffcc;">1194, 2086</b></span>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PAYLOAD & INJECT -->
+            <div class="acc-box purple" style="border-radius: 10px; background: rgba(176,38,255,0.03); border: 1px solid rgba(176,38,255,0.1);">
+                <div class="acc-box-title" style="color: #b026ff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <span><i class="fas fa-terminal" style="margin-right: 6px;"></i> Http Custom & Injector</span>
+                    <i class="fas fa-code" style="color: #b026ff; opacity: 0.5;"></i>
+                </div>
+                <div class="acc-box-content text-xs font-mono space-y-4">
+                    
+                    <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(176,38,255,0.3); padding: 12px; border-radius: 8px; position: relative;">
+                        <div style="font-size: 0.55rem; font-weight: bold; color: #b026ff; position: absolute; top: -8px; left: 12px; background: #0a0a0f; padding: 0 8px; letter-spacing: 1px;">UDP CUSTOM</div>
+                        <span style="color: #94a3b8; word-break: break-all;">{{DOMAIN}}:1-65535@<span style="color: #fff;">{{USERNAME}}</span>:<span style="color: #ffeb3b;">{{PASSWORD}}</span></span>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.8); border: 1px solid rgba(176,38,255,0.3); padding: 12px; border-radius: 8px; position: relative;">
+                        <div style="font-size: 0.55rem; font-weight: bold; color: #b026ff; position: absolute; top: -8px; left: 12px; background: #0a0a0f; padding: 0 8px; letter-spacing: 1px;">HTTP CUSTOM</div>
+                        <span style="color: #94a3b8; word-break: break-all;">{{DOMAIN}}:80@<span style="color: #fff;">{{USERNAME}}</span>:<span style="color: #ffeb3b;">{{PASSWORD}}</span></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+                <!-- FOOTER & CONTACT SUPPORT -->
+        <div class="bg-black/40 p-6 border-t border-slate-800/50 flex flex-col items-center justify-center space-y-5 rounded-b-xl">
+            
+            <p class="text-[0.65rem] text-slate-500 uppercase tracking-[0.15em] font-bold flex items-center gap-2">
+                <i class="fas fa-headset"></i> Butuh vps,vpn,dll? Hubungi Admin
+            </p>
+            
+            <!-- Container Tombol Kontak -->
+            <div class="flex flex-row gap-3 w-full max-w-[320px] justify-center">
+                <!-- Tombol WhatsApp -->
+                <a href="https://wa.me/6287733994799" target="_blank" rel="noopener noreferrer" class="flex-1 flex items-center justify-center gap-2 bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366] hover:text-white px-4 py-2.5 rounded-lg transition-all duration-300 shadow-[0_0_10px_rgba(37,211,102,0.1)] hover:shadow-[0_0_20px_rgba(37,211,102,0.5)] group">
+                    <i class="fab fa-whatsapp text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold tracking-wider">WhatsApp</span>
+                </a>
+                
+                <!-- Tombol Telegram -->
+                <a href="https://t.me/AcilOffcial" target="_blank" rel="noopener noreferrer" class="flex-1 flex items-center justify-center gap-2 bg-[#0088cc]/10 border border-[#0088cc]/30 text-[#0088cc] hover:bg-[#0088cc] hover:text-white px-4 py-2.5 rounded-lg transition-all duration-300 shadow-[0_0_10px_rgba(0,136,204,0.1)] hover:shadow-[0_0_20px_rgba(0,136,204,0.5)] group">
+                    <i class="fab fa-telegram-plane text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold tracking-wider">Telegram</span>
+                </a>
+            </div>
+
+            <!-- Copyright -->
+            <div class="text-center text-[0.60rem] text-slate-600 uppercase tracking-[0.2em] mt-2 pt-4 border-t border-slate-800/50 w-full max-w-[200px]">
+                AutoScript by Acilshop &bull; 2026
+            </div>
+        </div>
+
+    <!-- LOGIKA JAVASCRIPT TIMER ANTI-GAGAL -->
+    <script>
+        const username = "{{USERNAME}}";
+        const activeNum = parseInt("{{AKTIF}}") || 0; 
+        const rawDate = "{{EXPIRED}}".trim(); 
+        
+        const timerEl = document.getElementById('countdown-timer');
+        const badgeEl = document.getElementById('account-type-badge');
+        const textAktif = document.getElementById('aktif-text');
+        
+        const isTrial = username.toLowerCase().includes('trial');
+        let targetDate;
+
+        if (isTrial) {
+            // TAMPILAN TRIAL
+            badgeEl.innerHTML = '<span class="bg-red-500/10 text-red-500 border border-red-500/40 px-4 py-1 rounded-full text-[0.65rem] font-bold tracking-widest animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]"><i class="fas fa-stopwatch mr-1"></i> TRIAL MODE</span>';
+            timerEl.classList.add('text-red-400');
+            textAktif.innerHTML = activeNum + " Menit";
+
+            // LOGIKA TRIAL (Anti-Gagal, mengabaikan format waktu server sepenuhnya)
+            // Memanfaatkan LocalStorage agar timer tidak mereset ulang saat halaman di-refresh
+            let storedTarget = localStorage.getItem('end_time_' + username);
+            if (!storedTarget) {
+                // Jika baru pertama kali buka link, tetapkan target = Waktu Sekarang + Menit Trial
+                targetDate = new Date().getTime() + (activeNum * 60 * 1000);
+                localStorage.setItem('end_time_' + username, targetDate);
+            } else {
+                targetDate = parseInt(storedTarget);
+            }
+
+        } else {
+            // TAMPILAN PREMIUM
+            badgeEl.innerHTML = '<span class="bg-yellow-500/10 text-yellow-400 border border-yellow-500/40 px-4 py-1 rounded-full text-[0.65rem] font-bold tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.15)]"><i class="fas fa-crown mr-1"></i> PREMIUM VIP</span>';
+            timerEl.classList.add('text-yellow-400');
+            textAktif.innerHTML = activeNum + " Hari";
+
+            // LOGIKA PREMIUM (Menggunakan tanggal dari server, di-set ke jam 23:59:59)
+            let parseDate = rawDate;
+            if (!parseDate.includes(':') && parseDate !== "") {
+                parseDate += " 23:59:59";
+            }
+            targetDate = new Date(parseDate).getTime();
+        }
+
+        // FUNGSI HITUNG MUNDUR
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0 || isNaN(targetDate)) {
+                timerEl.innerHTML = "EXPIRED";
+                timerEl.classList.replace('text-yellow-400', 'text-red-600');
+                timerEl.classList.replace('text-red-400', 'text-red-600');
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if (isTrial) {
+                // Format Jam:Menit:Detik
+                timerEl.innerHTML = `${hours.toString().padStart(2, '0')}h : ${minutes.toString().padStart(2, '0')}m : ${seconds.toString().padStart(2, '0')}s`;
+            } else {
+                // Format Hari & Jam
+                if (days > 0) {
+                    timerEl.innerHTML = `${days} Hari, ${hours} Jam`;
+                } else {
+                    timerEl.innerHTML = `${hours}j ${minutes}m ${seconds}s`;
+                }
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+</body>
+</html>
