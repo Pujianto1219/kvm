@@ -1,0 +1,89 @@
+#!/bin/bash
+# ==========================================
+# LIVE MONITOR & QUOTA ENGINE UNTUK SSH
+# Oleh: ACILSHOP
+# ==========================================
+
+grep -E "^### " "/etc/xray/ssh" | cut -d ' ' -f 2 | while read user; do
+    
+    # ----------------------------------------
+    # 1. LOGIKA HITUNG IP LOGIN AKTIF
+    # ----------------------------------------
+    ip_login=$(netstat -anp | grep ESTABLISHED | grep sshd | grep -w "$user" | wc -l)
+    if [[ -z "$ip_login" ]]; then ip_login="0"; fi
+
+    # ----------------------------------------
+    # 2. MESIN PENGHITUNG KUOTA (IPTABLES METER)
+    # ----------------------------------------
+    UID_USER=$(id -u $user 2>/dev/null)
+    
+    # Pastikan user SSH benar-benar ada di sistem operasi
+    if [[ -n "$UID_USER" ]]; then
+        
+        # Cek apakah "CCTV Iptables" sudah dipasang untuk UID ini. Jika belum, pasang!
+        iptables -C OUTPUT -m owner --uid-owner $UID_USER >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            iptables -A OUTPUT -m owner --uid-owner $UID_USER
+        fi
+        
+        # Ambil angka pemakaian dari iptables (kolom ke-2 adalah ukuran dalam Bytes)
+        CURRENT_BYTES=$(iptables -L OUTPUT -v -n -x | grep "owner UID match $UID_USER" | awk '{print $2}' | head -n 1)
+        if [[ -z "$CURRENT_BYTES" ]]; then CURRENT_BYTES=0; fi
+        
+        # Baca rekaman terakhir (untuk mencari selisih / Delta)
+        FILE_LAST="/etc/xray/sshx/${user}Last"
+        if [ ! -f "$FILE_LAST" ]; then echo "0" > "$FILE_LAST"; fi
+        LAST_BYTES=$(cat "$FILE_LAST")
+        
+        # Kalkulasi selisih. (Logika ini kebal dari Restart VPS yang mereset Iptables ke 0)
+        if [[ "$CURRENT_BYTES" -ge "$LAST_BYTES" ]]; then
+            DELTA=$((CURRENT_BYTES - LAST_BYTES))
+        else
+            DELTA=$CURRENT_BYTES 
+        fi
+        
+        # Simpan angka saat ini untuk patokan menit berikutnya
+        echo "$CURRENT_BYTES" > "$FILE_LAST"
+        
+        # Tambahkan selisih (Delta) ke total tagihan Kuota asli klien
+        FILE_USAGE="/etc/xray/sshx/${user}Usage"
+        if [ ! -f "$FILE_USAGE" ]; then echo "0" > "$FILE_USAGE"; fi
+        TOTAL_USAGE=$(cat "$FILE_USAGE")
+        
+        NEW_TOTAL=$((TOTAL_USAGE + DELTA))
+        echo "$NEW_TOTAL" > "$FILE_USAGE"
+    fi
+
+    # ----------------------------------------
+    # 3. KONVERSI KE MB/GB & CETAK JSON
+    # ----------------------------------------
+    kuota_terpakai="0 MB"
+    FILE_USAGE="/etc/xray/sshx/${user}Usage"
+    
+    if [ -f "$FILE_USAGE" ]; then
+        bytes=$(cat "$FILE_USAGE")
+        if [[ $bytes -lt 1024 ]]; then
+            kuota_terpakai="${bytes} B"
+        elif [[ $bytes -lt 1048576 ]]; then
+            mb=$(echo "scale=2; $bytes/1024" | bc)
+            kuota_terpakai="${mb} KB"
+        elif [[ $bytes -lt 1073741824 ]]; then
+            mb=$(echo "scale=2; $bytes/1048576" | bc)
+            kuota_terpakai="${mb} MB"
+        else
+            gb=$(echo "scale=2; $bytes/1073741824" | bc)
+            kuota_terpakai="${gb} GB"
+        fi
+    fi
+
+cat <<EOF > /home/vps/public_html/usage-${user}.json
+{
+    "user": "$user",
+    "online_ip": "$ip_login",
+    "used_quota": "$kuota_terpakai"
+}
+EOF
+    
+    chmod 644 /home/vps/public_html/usage-${user}.json
+    
+done
