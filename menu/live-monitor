@@ -1,0 +1,41 @@
+#!/bin/bash
+# ==========================================
+# LIVE MONITOR GENERATOR UNTUK HTML WEB UI
+# Oleh: ACILSHOP
+# ==========================================
+
+grep -E "^### " "/etc/xray/ssh" | cut -d ' ' -f 2 | while read user; do
+    
+    ip_login=$(netstat -anp | grep ESTABLISHED | grep sshd | grep -w "$user" | wc -l)
+    if [[ -z "$ip_login" ]]; then ip_login="0"; fi
+
+    kuota_terpakai="0 MB"
+    FILE_USAGE="/etc/xray/sshx/${user}Usage"
+    
+    if [ -f "$FILE_USAGE" ]; then
+        bytes=$(cat "$FILE_USAGE")
+        if [[ $bytes -lt 1024 ]]; then
+            kuota_terpakai="${bytes} B"
+        elif [[ $bytes -lt 1048576 ]]; then
+            mb=$(echo "scale=2; $bytes/1024" | bc)
+            kuota_terpakai="${mb} KB"
+        elif [[ $bytes -lt 1073741824 ]]; then
+            mb=$(echo "scale=2; $bytes/1048576" | bc)
+            kuota_terpakai="${mb} MB"
+        else
+            gb=$(echo "scale=2; $bytes/1073741824" | bc)
+            kuota_terpakai="${gb} GB"
+        fi
+    fi
+
+cat <<EOF > /home/vps/public_html/usage-${user}.json
+{
+    "user": "$user",
+    "online_ip": "$ip_login",
+    "used_quota": "$kuota_terpakai"
+}
+EOF
+    
+    chmod 644 /home/vps/public_html/usage-${user}.json
+    
+done
